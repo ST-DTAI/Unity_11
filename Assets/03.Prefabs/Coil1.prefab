@@ -1,0 +1,120 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &6982674803307482029
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: be2fb9fc9a913b24798dab243b0bb664,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: be2fb9fc9a913b24798dab243b0bb664,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: be2fb9fc9a913b24798dab243b0bb664,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: be2fb9fc9a913b24798dab243b0bb664,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: be2fb9fc9a913b24798dab243b0bb664,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.000000037748947
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: be2fb9fc9a913b24798dab243b0bb664,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: be2fb9fc9a913b24798dab243b0bb664,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: be2fb9fc9a913b24798dab243b0bb664,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: be2fb9fc9a913b24798dab243b0bb664,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: be2fb9fc9a913b24798dab243b0bb664,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: be2fb9fc9a913b24798dab243b0bb664,
+        type: 3}
+      propertyPath: m_Name
+      value: Coil1
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: be2fb9fc9a913b24798dab243b0bb664,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6395399878155841769}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: be2fb9fc9a913b24798dab243b0bb664,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6126979934030259997}
+  m_SourcePrefab: {fileID: 100100000, guid: be2fb9fc9a913b24798dab243b0bb664, type: 3}
+--- !u!1 &7792943061729523452 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: be2fb9fc9a913b24798dab243b0bb664,
+    type: 3}
+  m_PrefabInstance: {fileID: 6982674803307482029}
+  m_PrefabAsset: {fileID: 0}
+--- !u!64 &6395399878155841769
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7792943061729523452}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -3140221429909269876, guid: be2fb9fc9a913b24798dab243b0bb664, type: 3}
+--- !u!114 &6126979934030259997
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7792943061729523452}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee18ad25368121d43ae8a9b1ae595291, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  outlineMaterial: {fileID: 2100000, guid: eb5492c460d386140b43fd8dc05530f4, type: 2}
+  originalMaterial: {fileID: 2100000, guid: 10f83752b49b3324bbee3df0a3fafcd0, type: 2}
