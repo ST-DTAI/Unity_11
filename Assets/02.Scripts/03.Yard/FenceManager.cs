@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using UnityEngine;
 using Color = UnityEngine.Color;
 
@@ -13,9 +14,11 @@ public class FenceManager : MonoBehaviour
 
     void Start()
     {
-        Point[] points = { new Point(39, 24), new Point(39, 2), new Point(93, 2), new Point(93, 24), new Point(39, 24) };
-        Point[] doorPoints = { new Point(39, 24), new Point(39, 2), new Point(93, 2), new Point(93, 24), new Point(39, 24) };
-
+        Point[] points = { new Point(40, 22), new Point(40, 3), new Point(92, 3), new Point(92, 22) };
+        // Point[] points = { new Point(40, 23), new Point(40, 3), new Point(92, 3), new Point(92, 23) };
+        // Point[] points = { new Point(39, 24), new Point(39, 2), new Point(93, 2), new Point(93, 24), new Point(39, 24) };
+        // Point[] doorPoints = {  };
+        SkidPointsToFencePoints(points);
         DrawFence(points, fenceGap);
         // DrawFence11();
         // DrawFence12();
@@ -209,31 +212,100 @@ public class FenceManager : MonoBehaviour
         lightFlag++;
         lightFlag %= 6;
     }
+    void SkidPointsToFencePoints(Point[] points)
+    {
+        int pointCount = points.Length;
+
+        // 스키드 points에서 안전펜스 points로 변경
+        int minX = points.Min(p => p.X);
+        int maxX = points.Max(p => p.X);
+        int minY = points.Min(p => p.Y);
+        int maxY = points.Max(p => p.Y);
+
+        int offsetX = 1;
+        int offsetY = 2;
+        for (int i = 0; i < pointCount; i++)
+        {
+            if (points[i].X == minX) points[i].X = minX - offsetX;
+            else if (points[i].X == maxX) points[i].X = maxX + offsetX;
+
+            if (points[i].Y == minY) points[i].Y = minY - offsetY;
+            else if (points[i].Y == maxY) points[i].Y = maxY + offsetY;
+        }
+        Debug.Log("Fence Points: " + string.Join(", ", points.Select(p => $"({p.X}, {p.Y})")));
+    }
     void DrawFence(Point[] points, float fenceSpacing)
     {
-        for (int i = 0; i < points.Length - 1; i++)
+        int pointCount = points.Length;
+
+        // 펜스 그리기
+        for (int i = 0; i < pointCount; i++)
         {
             Vector3 p1 = new Vector3(points[i].X, 0, points[i].Y);
-            Vector3 p2 = new Vector3(points[i + 1].X, 0, points[i + 1].Y);
+            Vector3 p2;
+            if (i == pointCount - 1)
+            {
+                p2 = new Vector3(points[0].X, 0, points[0].Y);          // 마지막 점은 첫 번째 점과 연결
+            }
+            else
+            {
+                p2 = new Vector3(points[i + 1].X, 0, points[i + 1].Y);  // 다음 점과 연결
+            }
 
             DrawFencesBetween(p1, p2, fenceSpacing);
         }
     }
     void DrawFencesBetween(Vector3 p1, Vector3 p2, float fenceSpacing)
     {
+        bool xHalf = false;
+        bool zHalf = false;
+        Debug.Log($"Drawing fence between {p1} and {p2} with spacing {fenceSpacing}");
+        Debug.Log($"XXXX: {Mathf.Abs(p1.x - p2.x) % 2}");
+        Debug.Log($"YYYY: {Mathf.Abs(p1.z - p2.z) % 2}");
+        if (Mathf.Abs(p1.x - p2.x) % 2 == 1) xHalf = true;
+        if (Mathf.Abs(p1.z - p2.z) % 2 == 1) zHalf = true;
+
         float dist = Vector3.Distance(p1, p2);
         int segmentCount = Mathf.FloorToInt(dist / fenceSpacing);
 
         // 방향 벡터 계산
-        Vector3 direction = (p1 - p2).normalized;
+        Vector3 direction = (p2 - p1).normalized;
+        // Vector3 direction = (p1 - p2).normalized;
 
         // 회전: 자동 회전 감지
         Quaternion rotation = Quaternion.LookRotation(direction);
 
         for (int i = 1; i <= segmentCount; i++)
         {
-            Vector3 pos = p2 + direction * (i * fenceSpacing); // ← 주의!
+            Vector3 pos = p1 + direction * (i * fenceSpacing); // ← 주의!
+            // Vector3 pos = p2 + direction * (i * fenceSpacing); // ← 주의!
             Instantiate(fencePrefab, pos, rotation);
+        }
+
+        // 반쪽 펜스 처리
+        if (xHalf)
+        {
+            Debug.Log($"xHalf: + {p1.x}, {p2.x}");
+            Vector3 halfPos = p1 + direction * (segmentCount * fenceSpacing + fenceSpacing / 2);
+            GameObject halfFence = Instantiate(fencePrefab, halfPos, rotation);
+            halfFence.transform.localScale = new Vector3(
+                halfFence.transform.localScale.x,
+                halfFence.transform.localScale.y,
+                halfFence.transform.localScale.z * 0.5f
+            );
+            halfFence.name = "FENCE_X_HALFHALFHALFHALFHALF";
+        }
+        if (zHalf)
+        {
+            Debug.Log($"zHalf: + {p1.z}, {p2.z}");
+            Vector3 halfPos = p1 + direction * (segmentCount * fenceSpacing + fenceSpacing / 2);
+            GameObject halfFence = Instantiate(fencePrefab, halfPos, rotation);
+            halfFence.transform.localScale = new Vector3(
+                halfFence.transform.localScale.x,
+                halfFence.transform.localScale.y,
+                halfFence.transform.localScale.z * 0.5f
+            );
+            halfFence.name = "FENCE_Z_HALFHALFHALFHALFHALF";
         }
     }
 }
