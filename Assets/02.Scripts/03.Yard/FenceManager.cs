@@ -231,7 +231,8 @@ public class FenceManager : MonoBehaviour
             Vector3 pos = p1 - direction * (fenceLocation * fenceGap);
             float next = 1.0f;
             
-            Instantiate(fencePrefab, pos, rotation);
+            GameObject fence = Instantiate(fencePrefab, pos, rotation);
+            fence.transform.SetParent(transform);
 
             fenceLocation += next;
         }
@@ -248,6 +249,7 @@ public class FenceManager : MonoBehaviour
                 halfFence.transform.localScale.z * 0.5f
             );
             halfFence.name = "FENCE_X_HALFHALFHALFHALFHALF";
+            halfFence.transform.SetParent(transform);
         }
         if (zHalf)
         {
@@ -260,6 +262,7 @@ public class FenceManager : MonoBehaviour
                 halfFence.transform.localScale.z * 0.5f
             );
             halfFence.name = "FENCE_Z_HALFHALFHALFHALFHALF";
+            halfFence.transform.SetParent(transform);
         }
     }
     void DrawFencesBetween(Vector3 p1, Vector3 p2, List<Vector3> doors)
@@ -305,7 +308,8 @@ public class FenceManager : MonoBehaviour
                 {
                     if (doors[0].z == pos.z)
                     {
-                        Instantiate(doorPrefab, pos, rotation);
+                        GameObject door = Instantiate(doorPrefab, pos, rotation);
+                        door.transform.SetParent(transform);
 
                         GameObject halfFence = Instantiate(fencePrefab, tmp, rotation);
                         halfFence.transform.localScale = new Vector3(
@@ -314,6 +318,7 @@ public class FenceManager : MonoBehaviour
                             halfFence.transform.localScale.z * 0.5f
                         );
                         halfFence.name = "FENCE_Z_WITH_DOOR";
+                        halfFence.transform.SetParent(transform);
 
                         next = 1.0f;
                     }
@@ -326,8 +331,10 @@ public class FenceManager : MonoBehaviour
                             halfFence.transform.localScale.z * 0.5f
                         );
                         halfFence.name = "FENCE_Z_WITH_DOOR";
+                        halfFence.transform.SetParent(transform);
 
-                        Instantiate(doorPrefab, tmp, rotation);
+                        GameObject door = Instantiate(doorPrefab, tmp, rotation);
+                        door.transform.SetParent(transform);
 
                         next = 1.0f;
                     }
@@ -336,7 +343,8 @@ public class FenceManager : MonoBehaviour
                 {
                     if (doors[0].x == pos.x)
                     {
-                        Instantiate(doorPrefab, pos, rotation);
+                        GameObject door = Instantiate(doorPrefab, pos, rotation);
+                        door.transform.SetParent(transform);
 
                         GameObject halfFence = Instantiate(fencePrefab, tmp, rotation);
                         halfFence.transform.localScale = new Vector3(
@@ -345,6 +353,7 @@ public class FenceManager : MonoBehaviour
                             halfFence.transform.localScale.z * 0.5f
                         );
                         halfFence.name = "FENCE_X_WITH_DOOR";
+                        halfFence.transform.SetParent(transform);
 
                         next = 1.0f;
                     }
@@ -357,8 +366,10 @@ public class FenceManager : MonoBehaviour
                             halfFence.transform.localScale.z * 0.5f
                         );
                         halfFence.name = "FENCE_X_WITH_DOOR";
+                        halfFence.transform.SetParent(transform);
 
-                        Instantiate(doorPrefab, tmp, rotation);
+                        GameObject door = Instantiate(doorPrefab, tmp, rotation);
+                        door.transform.SetParent(transform);
                         next = 1.0f;
                     }
                 }
@@ -366,7 +377,8 @@ public class FenceManager : MonoBehaviour
 
             if (next == 0.0f)
             {
-                Instantiate(fencePrefab, pos, rotation);
+                GameObject fence = Instantiate(fencePrefab, pos, rotation);
+                fence.transform.SetParent(transform);
                 next = 1.0f;
             }
             else
@@ -389,6 +401,7 @@ public class FenceManager : MonoBehaviour
                 halfFence.transform.localScale.z * (zHalf ? 0.5f : 1.0f)
             );
             halfFence.name = $"FENCE_HALFHALFHALFHALFHALF";
+            halfFence.transform.SetParent(transform);
         }
     }
     bool IsBetween(Point p, Point a, Point b)
