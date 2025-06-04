@@ -11,13 +11,11 @@ public class CraneInfoPanelManagerDirect : MonoBehaviour
 
     public int crNo = 11;
 
-    private DatabaseConnection dbConnection;
     private MySqlConnection connection;
 
     void Start()
     {
-        dbConnection = new DatabaseConnection();
-        connection = dbConnection.OpenConnection();
+        connection = DatabaseConnection.Instance.Connection;
     }
 
     //표에 데이터 넣기

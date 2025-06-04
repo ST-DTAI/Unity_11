@@ -19,7 +19,7 @@ public class TestDatabaseManager : MonoBehaviour
     public Button loadButton; // 데이터를 로드할 버튼
     public Button exportButton; // CSV로 내보내기 버튼
 
-    private DatabaseConnection dbConnection;
+  
     private MySqlConnection connection;
 
     // Start is called before the first frame update
@@ -36,20 +36,11 @@ public class TestDatabaseManager : MonoBehaviour
         {
             toggle.isOn = false; // 체크박스 초기 상태를 체크 해제
         }
-
-        dbConnection = new DatabaseConnection();
-        connection = dbConnection.OpenConnection();
+        connection = DatabaseConnection.Instance.Connection;
         // 처음 데이터 로드 (체크박스 상태에 관계없이)
         LoadInitialData();
     }
 
-    void OnDestroy()
-    {
-        if (dbConnection != null)
-        {
-            dbConnection.CloseConnection();
-        }
-    }
 
     void LoadInitialData()
     {
