@@ -5,7 +5,8 @@ public class RailManager : MonoBehaviour
 {
     public GameObject railPrefab;
     public int railNumber = 11;
-    public float railSpacing = 10f; 
+    public float railSpacing = 10f;
+
 
     public GameObject floorPrefab;
 
@@ -25,16 +26,17 @@ public class RailManager : MonoBehaviour
         // PlaceWallPrefabs();
     }
 
-    /// <summary>
-    /// ���� ����� �Լ� 
-    /// </summary>
+
     void PlaceRailPrefabs()
     {
 
         for (int i = 0; i < railNumber; i++)
         {
-            Vector3 position = new Vector3(i * railSpacing, 0, 0); // X �������� spacing �������� ��ġ
-            Instantiate(railPrefab, position, Quaternion.identity);
+            Vector3 position = new Vector3(i * railSpacing, 0, 0);
+            GameObject newRail = Instantiate(railPrefab, position, Quaternion.identity);
+
+            // 부모를 RailManager로 설정
+            newRail.transform.SetParent(transform, false);
         }
     }
 
@@ -45,6 +47,7 @@ public class RailManager : MonoBehaviour
     {
         // 바닥 배치
         GameObject floor = Instantiate(floorPrefab, Vector3.zero, Quaternion.identity);
+        floor.transform.SetParent(transform, false);
         float offsetX = 5f;  // X축 여유
         float offsetZ = 5f;  // Z축 여유
 

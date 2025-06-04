@@ -60364,6 +60364,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6bef60ff7d4e5444996ad411a085e71d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &987533173
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 987533174}
+  m_Layer: 0
+  m_Name: SkidObjectList
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &987533174
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 987533173}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -19.086182, y: -14.15975, z: 10.135974}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &993862788
 GameObject:
   m_ObjectHideFlags: 0
@@ -65661,6 +65692,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1054000443}
   m_CullTransparentMesh: 1
+--- !u!1 &1054866010
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1054866011}
+  m_Layer: 0
+  m_Name: CoilObjectList
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1054866011
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1054866010}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1056209133
 GameObject:
   m_ObjectHideFlags: 0
@@ -125488,6 +125550,8 @@ MonoBehaviour:
     type: 3}
   outlineMaterial: {fileID: 2100000, guid: eb5492c460d386140b43fd8dc05530f4, type: 2}
   dbConnectText: {fileID: 58274377}
+  coilObjectList: {fileID: 1054866010}
+  skidObjectList: {fileID: 987533173}
 --- !u!1 &2052947288
 GameObject:
   m_ObjectHideFlags: 0
@@ -131678,6 +131742,8 @@ SceneRoots:
   - {fileID: 578756246}
   - {fileID: 13422498}
   - {fileID: 2052409322}
+  - {fileID: 1054866011}
+  - {fileID: 987533174}
   - {fileID: 219596955}
   - {fileID: 1819124719}
   - {fileID: 850873753}

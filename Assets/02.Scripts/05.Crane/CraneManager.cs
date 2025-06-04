@@ -298,7 +298,7 @@ public class CraneManager : MonoBehaviour
         coilObjectInstance.transform.localPosition = Vector3.zero;
         coilObjectInstance.SetActive(true);
         coilObjectInstance.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
-        coilObjectInstance.transform.localRotation = Quaternion.Euler(0.0f, swivAng, 0.0f);
+        coilObjectInstance.transform.localRotation = Quaternion.identity;
 
         //코일 텍스트 설정 
         TextMeshPro tmp = coilObjectInstance.GetComponentInChildren<TextMeshPro>();

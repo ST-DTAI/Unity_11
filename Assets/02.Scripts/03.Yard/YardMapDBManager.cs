@@ -15,6 +15,9 @@ public class YardMapDBManager : MonoBehaviour
     public Material outlineMaterial;
     public TextMeshProUGUI dbConnectText;
 
+    public GameObject coilObjectList;   
+    public GameObject skidObjectList;   
+
     [SerializeField]
     private List<YardMap> skidsList = new List<YardMap>();
     public List<YardMap> SkidsList => skidsList;
@@ -180,6 +183,7 @@ public class YardMapDBManager : MonoBehaviour
                 Quaternion.Euler(0, skid.Dir, 0)
             );
 
+            newObject.transform.SetParent(skidObjectList.transform, false);
             newObject.name = $"Skid_D{skid.Dong}_{skid.SkidNo}";
 
             SkidClickHandler clickHandler = newObject.GetComponent<SkidClickHandler>();
@@ -191,6 +195,11 @@ public class YardMapDBManager : MonoBehaviour
     private void FetchCoilData(List<YardMap> coils)
     {
         Debug.Log("FetchCoilData() 실행: coils.Count=" + coils.Count);
+
+        foreach (GameObject existingCoil in GameObject.FindGameObjectsWithTag("YardCoil"))
+        {
+            Destroy(existingCoil);
+        }
 
         foreach (YardMap coil in coils)
         {
@@ -206,7 +215,11 @@ public class YardMapDBManager : MonoBehaviour
                 Quaternion.Euler(0, coil.Dir, 0)
             );
 
+            newObject.transform.SetParent(coilObjectList.transform, false);
+
+            newObject.tag = "YardCoil";
             newObject.name = $"Coil_D{coil.Dong}_{coil.PdNo}";
+            
 
             newObject.transform.localScale = new Vector3(
                 coil.Width / 1500f,
