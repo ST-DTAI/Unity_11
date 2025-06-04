@@ -10,11 +10,11 @@ public class FenceManager : MonoBehaviour
     public GameObject fencePrefab;
     public GameObject doorPrefab;
     int fenceGap = 2;
-    int lightFlag = 0;  //0,1,2->11의 빨,노,초 / 3,4,5->12의 빨,노,초
+    int lightFlag = 0;  //0,1,2,3 -> X,빨,노,초
 
     void Start()
     {
-
+        List<string> doorNames = new List<string> { "Door_111", "Door_112", "Door_113", "Door_114", "Door_115" };
         List<Point> fencePoints = new List<Point> { new Point(39, 24), new Point(39, 2), new Point(93, 2), new Point(93, 24) };
         List<Point> doorPoints = new List<Point> { new Point(39, 22), new Point(39, 10), new Point(50, 2), new Point(93, 10), new Point(50, 24) };
         //List<Point> doorPoints = new List<Point> { new Point(50, 2) };
@@ -101,58 +101,39 @@ public class FenceManager : MonoBehaviour
     }
     void LightTest()
     {
-        // lightFlag에 맞게 빛 효과 주기
-        int span = lightFlag / 3;
-        int colorIndex = lightFlag % 3;
+        int colorIndex = lightFlag % 4;
+        lightFlag++;
+        lightFlag %= 4;
 
-        GameObject lightGO = GameObject.Find("Light" + (span + 11));
-        if (lightGO == null)
+        GameObject LightG = GameObject.Find("LightGreen");
+        GameObject LightR = GameObject.Find("LightRed");
+        GameObject LightY = GameObject.Find("LightYellow");
+
+        LightG.GetComponent<Light>().enabled = false;
+        LightR.GetComponent<Light>().enabled = false;
+        LightY.GetComponent<Light>().enabled = false;
+
+        Light light;
+        if (colorIndex == 1)
         {
-            Debug.LogWarning("Light object not found for span: " + span);
+            light = LightR.GetComponent<Light>();
+        }
+        else if (colorIndex == 2)
+        {
+            light = LightY.GetComponent<Light>();
+        }
+        else if (colorIndex == 3)
+        {
+            light = LightG.GetComponent<Light>();
+        }
+        else
+        {
             return;
         }
 
-        Light light = lightGO.GetComponent<Light>();
-        if (light == null)
-        {
-            Debug.LogWarning("Light component missing on: " + lightGO.name);
-            return;
-        }
-
-        // 다른 빛 비활성화
-        int otherSpan = (span == 0) ? 1 : 0;
-        GameObject otherLightGO = GameObject.Find("Light" + (otherSpan + 11));
-        if (otherLightGO != null)
-        {
-            Light otherLight = otherLightGO.GetComponent<Light>();
-            if (otherLight != null) otherLight.enabled = false;
-        }
-
-        // 빛 색상 및 위치 설정
-        GameObject doorGO = GameObject.Find("DOOR" + (span + 11));
-        if (doorGO == null)
-        {
-            Debug.LogWarning("Door not found: DOOR" + (span + 11));
-            return;
-        }
-
-        string[] colorNames = { "LightRed", "LightYellow", "LightGreen" };
-        Color[] colors = { Color.red, Color.yellow, Color.green };
-
-        Transform lightPos = doorGO.transform.Find(colorNames[colorIndex]);
-        if (lightPos == null)
-        {
-            Debug.LogWarning("Color point not found: " + colorNames[colorIndex]);
-            return;
-        }
-
-        light.transform.position = lightPos.position;
-        light.color = colors[colorIndex];
-        light.intensity = 1f;
         light.enabled = true;
 
-        lightFlag++;
-        lightFlag %= 6;
+
     }
     void SkidPointsToFencePoints(List<Point> points)
     {
