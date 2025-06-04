@@ -1,12 +1,12 @@
 using MySql.Data.MySqlClient;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data.Common;
 using TMPro;
 using UnityEngine;
 
 public class YardMapDBManager : MonoBehaviour
 {
-    private DatabaseConnection dbConnection;
     private MySqlConnection connection;
 
     public GameObject SkidObject;
@@ -28,8 +28,8 @@ public class YardMapDBManager : MonoBehaviour
 
     void Start()
     {
-        dbConnection = new DatabaseConnection();
-        connection = dbConnection.OpenConnection();
+        connection = DatabaseConnection.Instance.Connection;
+
 
         if (connection != null)
         {
@@ -50,13 +50,6 @@ public class YardMapDBManager : MonoBehaviour
         }
     }
 
-    void OnDestroy()
-    {
-        if (dbConnection != null)
-        {
-            dbConnection.CloseConnection();
-        }
-    }
 
     private void ReadSkidData(bool forceUpdate = false)
     {

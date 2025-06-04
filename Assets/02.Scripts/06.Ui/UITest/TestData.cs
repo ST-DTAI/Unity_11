@@ -5,13 +5,11 @@ using UnityEngine;
 
 public class TestData : MonoBehaviour
 {
-    private DatabaseConnection dbConnection;
     private MySqlConnection connection;
     // Start is called before the first frame update
     void Start()
     {
-        dbConnection = new DatabaseConnection();
-        connection = dbConnection.OpenConnection();
+        connection = DatabaseConnection.Instance.Connection;
 
         if (connection != null)
         {
@@ -19,13 +17,6 @@ public class TestData : MonoBehaviour
         }
     }
 
-    void OnDestroy()
-    {
-        if (dbConnection != null)
-        {
-            dbConnection.CloseConnection();
-        }
-    }
 
     private void ReadData(bool initialLoad)
     {

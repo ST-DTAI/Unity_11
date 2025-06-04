@@ -9,7 +9,6 @@ using UnityEngine;
 
 public class CraneManager : MonoBehaviour
 {
-    private DatabaseConnection dbConnection;
     private MySqlConnection connection;
 
     [SerializeField]
@@ -46,8 +45,7 @@ public class CraneManager : MonoBehaviour
 
     void Start()
     {
-        dbConnection = new DatabaseConnection();
-        connection = dbConnection.OpenConnection();
+        connection = DatabaseConnection.Instance.Connection;
         if (connection != null)
         {
             // 초기 크레인 위치 설정
@@ -172,10 +170,6 @@ public class CraneManager : MonoBehaviour
        
     }
 
-    void OnDestroy()
-    {
-        dbConnection.CloseConnection();
-    }
 
     private IEnumerator UpdateCraneCoroutine()
     {

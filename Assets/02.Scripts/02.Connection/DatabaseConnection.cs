@@ -3,34 +3,52 @@ using MySql.Data.MySqlClient;
 using TMPro;
 using UnityEngine;
 
-public class DatabaseConnection
+public class DatabaseConnection : MonoBehaviour
 {
-    private string host = "192.168.0.31";
-    private string database = "clts";
-    private string user = "clts";
-    private string password = "clts";
-    private string charset = "utf8";
-
+    public static DatabaseConnection Instance { get; private set; }
     private MySqlConnection connection;
 
-    
+    [Header("DB Config")]
+    public string host = "192.168.0.31";
+    public string database = "clts";
+    public string user = "clts";
+    public string password = "clts";
+    public string charset = "utf8";
 
-    public MySqlConnection OpenConnection()
+    public MySqlConnection Connection => connection;
+
+    private void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+            OpenConnection();
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
+    private void OpenConnection()
     {
         try
         {
-            string connectionString = string.Format("server={0}; database={1}; uid={2}; pwd={3}; charset={4};",
-                                                    host, database, user, password, charset);
-            connection = new MySqlConnection(connectionString);
+            string connStr = $"server={host}; database={database}; uid={user}; pwd={password}; charset={charset};";
+            connection = new MySqlConnection(connStr);
             connection.Open();
             Debug.Log("MySQL Connection Opened");
-            return connection;
         }
         catch (Exception ex)
         {
             Debug.LogError("MySQL Connection Error: " + ex.Message);
-            return null;
         }
+    }
+
+    private void OnDestroy()
+    {
+        CloseConnection();
     }
 
     public void CloseConnection()

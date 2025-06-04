@@ -36,7 +36,6 @@ public class HistorySDatabaseManager : MonoBehaviour
 
     public Button CSVExportButton;
 
-    private DatabaseConnection dbConnection;
     private MySqlConnection connection;
 
     private Queue<GameObject> rowPool = new Queue<GameObject>(); // Row 오브젝트 풀
@@ -49,8 +48,7 @@ public class HistorySDatabaseManager : MonoBehaviour
 
     void Start()
     {
-        dbConnection = new DatabaseConnection();
-        connection = dbConnection.OpenConnection();
+        connection = DatabaseConnection.Instance.Connection;
 
         // 총 레코드 수 초기화
         //InitializeTotalRecords();
@@ -68,13 +66,6 @@ public class HistorySDatabaseManager : MonoBehaviour
 
     }
 
-    void OnDestroy()
-    {
-        if (dbConnection != null)
-        {
-            dbConnection.CloseConnection();
-        }
-    }
 
     void InitializeTotalRecords()
     {

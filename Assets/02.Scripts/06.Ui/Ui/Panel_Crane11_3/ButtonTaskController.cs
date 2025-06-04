@@ -19,7 +19,6 @@ public class ButtonTaskController : MonoBehaviour
     public Button autoScheduleButton;
     public Button emergencyStopButton;
 
-    private DatabaseConnection dbConnection;
     private MySqlConnection connection;
 
     private string currentMode = "Auto";
@@ -44,18 +43,12 @@ public class ButtonTaskController : MonoBehaviour
 
     void Start()
     {
-        dbConnection = new DatabaseConnection();
-        connection = dbConnection.OpenConnection();
+        connection = DatabaseConnection.Instance.Connection;
 
         InitializeModeFromDB();
         InitializeEmergencyStateFromDB();
     }
 
-    private void OnDestroy()
-    {
-        if (connection != null)
-            dbConnection.CloseConnection();
-    }
 
     // --------------------- initialize ---------------------
 
