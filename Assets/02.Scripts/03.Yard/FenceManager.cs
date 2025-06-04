@@ -1,33 +1,99 @@
+using MySql.Data.MySqlClient;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using UnityEngine;
+using Newtonsoft.Json;
 using static Unity.Burst.Intrinsics.X86.Avx;
 using static UnityEditor.PlayerSettings;
 using Color = UnityEngine.Color;
+using Newtonsoft.Json.Linq;
+
 
 public class FenceManager : MonoBehaviour
 {
+    private MySqlConnection connection;
+
     public GameObject fencePrefab;
     public GameObject doorPrefab;
     int fenceGap = 2;
     int lightFlag = 0;  //0,1,2,3 -> X,빨,노,초
 
+
+    List<int> doorIndex = new List<int>();
+    string doorNames;
+    List<GameObject> safeDoorObject = new List<GameObject>();
+
     void Start()
     {
-        List<string> doorNames = new List<string> { "Door_111", "Door_112", "Door_113", "Door_114", "Door_115" };
-        List<Point> fencePoints = new List<Point> { new Point(39, 24), new Point(39, 2), new Point(93, 2), new Point(93, 24) };
+        connection = DatabaseConnection.Instance.Connection;
 
-        //List<Point> doorPoints = new List<Point> { new Point(39, 22), new Point(39, 15), new Point(50, 2), new Point(93, 10), new Point(50, 24) };
+
+        List<Point> fencePoints = new List<Point>();
         List<Point> doorPoints = new List<Point>();
 
+        const string query = "SELECT Name, Pos1, Pos2 FROM test_draw WHERE Name LIKE 'Safe_%';";
+        if (connection != null)
+        {
+            using (MySqlCommand cmd = new MySqlCommand(query, connection))
+            {
+                using (MySqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        doorNames = "";
+                        fencePoints.Clear();
+                        doorPoints.Clear();
+
+                        doorNames = reader.GetString("Name");
+                        doorNames = doorNames.Substring(5); // "Safe_" 접두사 제거
+
+                        string pos1Json = reader.GetString("Pos1");
+                        var pos1Array = JArray.Parse(pos1Json);
+                        foreach (var point in pos1Array)
+                        {
+                            int x = point[0].Value<int>();
+                            int y = point[1].Value<int>();
+                            fencePoints.Add(new Point(x, y));
+                        }
+
+                        // Pos2 파싱
+                        string pos2Json = reader.GetString("Pos2");
+                        var pos2Array = JArray.Parse(pos2Json);
+                        foreach (var point in pos2Array)
+                        {
+                            int x = point[0].Value<int>();
+                            int y = point[1].Value<int>();
+                            doorPoints.Add(new Point(x, y));
+                        }
+
+                        DrawFence(fencePoints, doorPoints);
+                    }
+                }
+            }
+        }
+
+
+        //List<string> doorNames = new List<string> { "Door_111", "Door_112", "Door_113", "Door_114", "Door_115" };
+        //List<Point> fencePoints = new List<Point> { new Point(39, 24), new Point(39, 2), new Point(93, 2), new Point(93, 24) };
+
+        ////List<Point> doorPoints = new List<Point> { new Point(39, 22), new Point(39, 15), new Point(50, 2), new Point(93, 10), new Point(50, 24) };
+        //List<Point> doorPoints = new List<Point>();
+
         //SkidPointsToFencePoints(fencePoints);
-        DrawFence(fencePoints, doorPoints);
+        //DrawFence(fencePoints, doorPoints);
+
+        // 위치만 그리기
+        // Draw DB의 Name이 Safe어쩌구인것만 읽어서 그린다
+        // 그런데 그때 SafeDoorStatus를 Join해서 동, 번호, span까지
+        StartCoroutine(UpdateSafeDoorStatusCoroutine());
     }
-    
+
     void Update()
     {
+        // 안전문 상태만 읽어서 함수 호출
+        // 실제 안전문 상태 바꿀 함수는 SafeDoor.cs에 구현되어 있음
         if (Input.GetKeyDown(KeyCode.Space))
         {
             LightTest();
@@ -35,37 +101,46 @@ public class FenceManager : MonoBehaviour
     }
     void LightTest()
     {
-        int colorIndex = lightFlag % 4;
-        lightFlag++;
-        lightFlag %= 4;
+        //foreach (GameObject doorObject in safeDoorObject)
+        //{
+            
+        //    if (doorObject.GetComponent<SafeDoor>().NameKey == "115")
+        //    {
+        //        doorObject.GetComponent<SafeDoor>().testDoor();
+        //    }
+        //}
 
-        GameObject LightG = GameObject.Find("LightGreen");
-        GameObject LightR = GameObject.Find("LightRed");
-        GameObject LightY = GameObject.Find("LightYellow");
+        //int colorIndex = lightFlag % 4;
+        //lightFlag++;
+        //lightFlag %= 4;
 
-        LightG.GetComponent<Light>().enabled = false;
-        LightR.GetComponent<Light>().enabled = false;
-        LightY.GetComponent<Light>().enabled = false;
+        //GameObject LightG = GameObject.Find("LightGreen");
+        //GameObject LightR = GameObject.Find("LightRed");
+        //GameObject LightY = GameObject.Find("LightYellow");
 
-        Light light;
-        if (colorIndex == 1)
-        {
-            light = LightR.GetComponent<Light>();
-        }
-        else if (colorIndex == 2)
-        {
-            light = LightY.GetComponent<Light>();
-        }
-        else if (colorIndex == 3)
-        {
-            light = LightG.GetComponent<Light>();
-        }
-        else
-        {
-            return;
-        }
+        //LightG.GetComponent<Light>().enabled = false;
+        //LightR.GetComponent<Light>().enabled = false;
+        //LightY.GetComponent<Light>().enabled = false;
 
-        light.enabled = true;
+        //Light light;
+        //if (colorIndex == 1)
+        //{
+        //    light = LightR.GetComponent<Light>();
+        //}
+        //else if (colorIndex == 2)
+        //{
+        //    light = LightY.GetComponent<Light>();
+        //}
+        //else if (colorIndex == 3)
+        //{
+        //    light = LightG.GetComponent<Light>();
+        //}
+        //else
+        //{
+        //    return;
+        //}
+
+        //light.enabled = true;
 
 
     }
@@ -105,19 +180,49 @@ public class FenceManager : MonoBehaviour
             Vector3 p1 = new Vector3(point1.X, 0, point1.Y);
             Vector3 p2 = new Vector3(point2.X, 0, point2.Y);
 
-            // 펜스 포인트 사이에 존재하는 안전문 포인트 리스트
-            List<Vector3> nowDoors = new List<Vector3>();
-            foreach (Point door in doors)
+
+            // index랑 같이 정렬되어야 하니까 튜플로 묶어서 List 만들기
+            List<(Vector3 pos, int index)> doorData = new List<(Vector3, int)>();
+            for (int d = 0; d < doors.Count; d++)
             {
+                Point door = doors[d];
                 if (IsBetween(door, point1, point2))
-                    nowDoors.Add(new Vector3(door.X, 0, door.Y));
+                {
+                    Vector3 vec = new Vector3(door.X, 0, door.Y);
+                    doorData.Add((vec, d));
+                }
             }
-            
-            if (nowDoors.Count > 0)
+
+            if (doorData.Count > 0)
             {
                 // point1과 거리를 기준으로 정렬
-                nowDoors = nowDoors.OrderBy(p => Vector3.Distance(new Vector3(point1.X, 0, point1.Y), p)).ToList();
+                doorData = doorData
+                    .OrderBy(item => Vector3.Distance(new Vector3(point1.X, 0, point1.Y), item.pos))
+                    .ToList();
             }
+
+            // 튜플 다시 분리
+            List<Vector3> nowDoors = doorData.Select(item => item.pos).ToList();
+            doorIndex = doorData.Select(item => item.index).ToList();
+
+            //// 펜스 포인트 사이에 존재하는 안전문 포인트 리스트
+            //doorIndex.Clear();
+            //List<Vector3> nowDoors = new List<Vector3>();
+            //for (int d = 0; d < doors.Count; d++)
+            //{
+            //    Point door = doors[d];
+            //    if (IsBetween(door, point1, point2))
+            //    {
+            //        nowDoors.Add(new Vector3(door.X, 0, door.Y));
+            //        doorIndex.Add(d);
+            //    }
+            //}
+
+            //if (nowDoors.Count > 0)
+            //{
+            //    // point1과 거리를 기준으로 정렬
+            //    nowDoors = nowDoors.OrderBy(p => Vector3.Distance(new Vector3(point1.X, 0, point1.Y), p)).ToList();
+            //}
             DrawFencesBetween(p1, p2, nowDoors);
         }
     }
@@ -157,6 +262,7 @@ public class FenceManager : MonoBehaviour
             if (isDrawDoor)
             {
                 doors.RemoveAt(0);
+                doorIndex.RemoveAt(0);
             }
             else
             {
@@ -203,6 +309,8 @@ public class FenceManager : MonoBehaviour
             {
                 GameObject door = Instantiate(doorPrefab, pos, rotation);
                 door.transform.SetParent(transform);
+                door.GetComponent<SafeDoor>().NameKey = doorNames.Substring(doorIndex[0] * 3, 3);
+                safeDoorObject.Add(door);
 
                 GameObject halfFence = Instantiate(fencePrefab, tmp, rotation);
                 halfFence.transform.localScale = new Vector3(
@@ -228,6 +336,8 @@ public class FenceManager : MonoBehaviour
 
                 GameObject door = Instantiate(doorPrefab, tmp, rotation);
                 door.transform.SetParent(transform);
+                door.GetComponent<SafeDoor>().NameKey = doorNames.Substring(doorIndex[0] * 3, 3);
+                safeDoorObject.Add(door);
 
                 return true;
             }
@@ -238,6 +348,8 @@ public class FenceManager : MonoBehaviour
             {
                 GameObject door = Instantiate(doorPrefab, pos, rotation);
                 door.transform.SetParent(transform);
+                door.GetComponent<SafeDoor>().NameKey = doorNames.Substring(doorIndex[0] * 3, 3);
+                safeDoorObject.Add(door);
 
                 GameObject halfFence = Instantiate(fencePrefab, tmp, rotation);
                 halfFence.transform.localScale = new Vector3(
@@ -263,9 +375,43 @@ public class FenceManager : MonoBehaviour
 
                 GameObject door = Instantiate(doorPrefab, tmp, rotation);
                 door.transform.SetParent(transform);
+                door.GetComponent<SafeDoor>().NameKey = doorNames.Substring(doorIndex[0] * 3, 3);
+                safeDoorObject.Add(door);
+
                 return true;
             }
         }
         return false;
+    }
+    IEnumerator UpdateSafeDoorStatusCoroutine()
+    {
+        while (true)
+        {
+            const string query = "SELECT Name, State FROM test_safedoorstatus;";
+            if (connection != null)
+            {
+                using (MySqlCommand cmd = new MySqlCommand(query, connection))
+                {
+                    using (MySqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            string name = reader.GetString("Name");
+                            int state = reader.GetInt32("State");
+
+                            foreach (GameObject doorObject in safeDoorObject)
+                            {
+                                if (doorObject.GetComponent<SafeDoor>().NameKey == name)
+                                {
+                                    doorObject.GetComponent<SafeDoor>().SetState(state);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            yield return new WaitForSeconds(1.0f);
+        }
     }
 }
