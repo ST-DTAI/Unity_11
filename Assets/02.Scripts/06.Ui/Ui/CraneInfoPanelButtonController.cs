@@ -33,7 +33,7 @@ public class CraneInfoPanelButtonController : MonoBehaviour
     [Header("버튼과 DB 타겟 매핑")]
     public List<ButtonDBBinding> buttonBindings = new List<ButtonDBBinding>(9);
 
-    private DatabaseConnection dbConnection;
+
     private MySqlConnection connection;
 
     private const string TableName = "clts.cr_command";
@@ -42,8 +42,7 @@ public class CraneInfoPanelButtonController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        dbConnection = new DatabaseConnection();
-        connection = dbConnection.OpenConnection();
+        connection = DatabaseConnection.Instance.Connection;
 
         // 버튼 이벤트 등록
         foreach (var binding in buttonBindings)
@@ -134,13 +133,5 @@ public class CraneInfoPanelButtonController : MonoBehaviour
         }
     }
 
-
-    private void OnDestroy()
-    {
-        if (connection != null)
-        {
-            dbConnection.CloseConnection();
-        }
-    }
 
 }

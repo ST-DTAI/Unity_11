@@ -3,12 +3,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using TMPro;
 using UnityEditor;
 using UnityEngine;
 
 public class CraneManager : MonoBehaviour
 {
-    private DatabaseConnection dbConnection;
     private MySqlConnection connection;
 
     [SerializeField]
@@ -45,8 +45,7 @@ public class CraneManager : MonoBehaviour
 
     void Start()
     {
-        dbConnection = new DatabaseConnection();
-        connection = dbConnection.OpenConnection();
+        connection = DatabaseConnection.Instance.Connection;
         if (connection != null)
         {
             // 초기 크레인 위치 설정
@@ -171,10 +170,6 @@ public class CraneManager : MonoBehaviour
        
     }
 
-    void OnDestroy()
-    {
-        dbConnection.CloseConnection();
-    }
 
     private IEnumerator UpdateCraneCoroutine()
     {
@@ -268,7 +263,7 @@ public class CraneManager : MonoBehaviour
     {
         if (pdNo != "0" && !isCoilAttached)
         {
-            AttachCoilObject(swivAng);
+            AttachCoilObject(swivAng, pdNo);
             isCoilAttached = true;
         }
         else if (pdNo == "0" && isCoilAttached)
@@ -280,7 +275,7 @@ public class CraneManager : MonoBehaviour
 
 
 
-    private void AttachCoilObject(int swivAng)
+    private void AttachCoilObject(int swivAng, string pdNo)
     {
         GameObject coilObjectInstance;
 
@@ -297,8 +292,18 @@ public class CraneManager : MonoBehaviour
         coilObjectInstance.transform.localPosition = Vector3.zero;
         coilObjectInstance.SetActive(true);
         coilObjectInstance.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
-        coilObjectInstance.transform.localRotation = Quaternion.Euler(0.0f, swivAng, 0.0f);
+        coilObjectInstance.transform.localRotation = Quaternion.identity;
 
+        //코일 텍스트 설정 
+        TextMeshPro tmp = coilObjectInstance.GetComponentInChildren<TextMeshPro>();
+        if (tmp != null)
+        {
+            tmp.text = pdNo;
+        }
+        else
+        {
+            Debug.LogWarning("TextMeshPro component not found in Coil Object.");
+        }
         //Debug.Log("Coil Object Attached to " + newParentTransform.name);
     }
 

@@ -44,8 +44,7 @@ public class CraneStatusManager : MonoBehaviour
 
     void Start()
     {
-        dbConnection = new DatabaseConnection();
-        connection = dbConnection.OpenConnection();
+        connection = DatabaseConnection.Instance.Connection;
         if (connection != null)
         {
             //dataReader = new DatabaseReader(connection);
@@ -74,10 +73,6 @@ public class CraneStatusManager : MonoBehaviour
         liftRootObject2.transform.position = Vector3.MoveTowards(liftRootObject2.transform.position, targetPositionLift2, Time.deltaTime * 0.10f);
     }
 
-    void OnDestroy()
-    {
-        dbConnection.CloseConnection();
-    }
 
     private IEnumerator UpdateCraneCoroutine()
     {

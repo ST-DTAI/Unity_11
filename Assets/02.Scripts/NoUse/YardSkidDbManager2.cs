@@ -34,7 +34,7 @@ public class YardSkidDbManager2 : MonoBehaviour
     void Start()
     {
         dbConnection = new DatabaseConnection();
-        connection = dbConnection.OpenConnection();
+        connection = DatabaseConnection.Instance.Connection;
 
         dbConnectText.color = Color.green; //db통신 성공시 텍스트 색상 변경
 
@@ -44,13 +44,6 @@ public class YardSkidDbManager2 : MonoBehaviour
         }
     }
 
-    void OnDestroy()
-    {
-        if (dbConnection != null)
-        {
-            dbConnection.CloseConnection();
-        }
-    }
 
     private void ReadSkidData(bool initialLoad)
     {

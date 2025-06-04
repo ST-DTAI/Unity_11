@@ -7,13 +7,12 @@ using UnityEngine;
 
 public class MainCraneStatusManager : MonoBehaviour
 {
-    private DatabaseConnection dbConnection;
+
     private MySqlConnection connection;
     // Start is called before the first frame update
     void Start()
     {
-        dbConnection = new DatabaseConnection();
-        connection = dbConnection.OpenConnection();
+        connection = DatabaseConnection.Instance.Connection;
 
         LoadCraneStatus();
     }
