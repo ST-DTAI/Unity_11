@@ -1023,10 +1023,8 @@ MonoBehaviour:
     type: 3}
   railNumber: 20
   railSpacing: 10
-  yardPrefab: {fileID: 6751834390698801112, guid: c9e77e39771db584b8b4de255354efd6,
+  floorPrefab: {fileID: 6751834390698801112, guid: c9e77e39771db584b8b4de255354efd6,
     type: 3}
-  yardNumber: 20
-  yardSpacing: 10
   cranePrefab: {fileID: 1246015261363093643, guid: 78e9a0c87062ef74aa0a1f5d1e3b5a12,
     type: 3}
   craneNumber: 2
