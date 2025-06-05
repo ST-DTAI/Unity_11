@@ -27,7 +27,7 @@ public class FenceManager : MonoBehaviour
         List<Point> fencePoints = new List<Point>();
         List<Point> doorPoints = new List<Point>();
 
-        const string query = "SELECT TypeNo, Name, Pos1, Pos2 FROM test_draw WHERE TypeNo LIKE 'Safe%';";
+        const string query = "SELECT TypeNo, Name, Pos1, Pos2 FROM unity_draw WHERE TypeNo LIKE 'Safe%';";
         if (connection != null)
         {
             using (MySqlCommand cmd = new MySqlCommand(query, connection))
@@ -358,7 +358,7 @@ public class FenceManager : MonoBehaviour
     {
         while (true)
         {
-            const string query = "SELECT Name, State FROM test_safedoorstatus;";
+            const string query = "SELECT Name, State FROM unity_safedoorstatus;";
             if (connection != null)
             {
                 using (MySqlCommand cmd = new MySqlCommand(query, connection))
