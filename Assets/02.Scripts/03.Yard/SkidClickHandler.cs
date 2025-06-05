@@ -7,7 +7,7 @@ public class SkidClickHandler : MonoBehaviour
 {
     public YardMap skidData; // 클릭된 스키드의 데이터
 
-    public Material outlineMaterial; // 클릭 시 적용할 머티리얼
+    public Material clickedMaterial; // 클릭 시 적용할 머티리얼
     public Material originalMaterial; // 원래 머티리얼
 
     private static SkidClickHandler lastClickedHandler;
@@ -43,9 +43,9 @@ public class SkidClickHandler : MonoBehaviour
         }
 
         // 현재 Skid에 outline 머티리얼 적용
-        if (myRenderer != null && outlineMaterial != null)
+        if (myRenderer != null && clickedMaterial != null)
         {
-            myRenderer.material = outlineMaterial;
+            myRenderer.material = clickedMaterial;
         }
 
         // ButtonTaskController에 dx, dy 전달

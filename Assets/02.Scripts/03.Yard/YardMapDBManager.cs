@@ -12,7 +12,7 @@ public class YardMapDBManager : MonoBehaviour
     public GameObject SkidObject;
     public GameObject CoilObject;
 
-    public Material outlineMaterial;
+    public Material clickedMaterial;
     public TextMeshProUGUI dbConnectText;
 
     public GameObject coilObjectList;   
@@ -181,7 +181,7 @@ public class YardMapDBManager : MonoBehaviour
 
             SkidClickHandler clickHandler = newObject.GetComponent<SkidClickHandler>();
             clickHandler.skidData = skid;
-            clickHandler.outlineMaterial = outlineMaterial;
+            clickHandler.clickedMaterial = clickedMaterial;
         }
     }
 
@@ -222,7 +222,7 @@ public class YardMapDBManager : MonoBehaviour
 
             CoilClickHandler clickHandler = newObject.AddComponent<CoilClickHandler>();
             clickHandler.coilData = coil;
-            clickHandler.outlineMaterial = outlineMaterial;
+            clickHandler.clickedMaterial = clickedMaterial;
 
             TextMeshPro tmp = newObject.GetComponentInChildren<TextMeshPro>();
             if (tmp != null)

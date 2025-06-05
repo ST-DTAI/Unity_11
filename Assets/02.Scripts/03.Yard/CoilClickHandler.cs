@@ -9,7 +9,7 @@ public class CoilClickHandler : MonoBehaviour
 {
 
     public YardMap coilData; // 이 오브젝트에 해당하는 코일 데이터
-    public Material outlineMaterial; // 클릭 시 적용할 새로운 Material
+    public Material clickedMaterial; // 클릭 시 적용할 새로운 Material
     public Material originalMaterial; // 원래 Material
 
     private YardMapDBManager YardMapDBManager;
@@ -64,13 +64,13 @@ public class CoilClickHandler : MonoBehaviour
         }
 
         // 현재 코일에 선택 머티리얼 적용
-        if (coilRenderer != null && outlineMaterial != null)
+        if (coilRenderer != null && clickedMaterial != null)
         {
-            coilRenderer.material = outlineMaterial;
+            coilRenderer.material = clickedMaterial;
 
-            Debug.Log("New Material set: " + outlineMaterial.name);
-            if (outlineMaterial.shader != null)
-                Debug.Log("Shader used: " + outlineMaterial.shader.name);
+            Debug.Log("New Material set: " + clickedMaterial.name);
+            if (clickedMaterial.shader != null)
+                Debug.Log("Shader used: " + clickedMaterial.shader.name);
             else
                 Debug.LogWarning("New Material does not have a valid shader.");
         }
