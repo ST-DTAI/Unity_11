@@ -48020,7 +48020,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1046973134}
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1984916661}
   m_LocalEulerAnglesHint: {x: 35, y: 50, z: 0}
 --- !u!1 &819216780
 GameObject:
@@ -99191,13 +99191,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1612058764}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
   m_LocalPosition: {x: 70, y: 55, z: 54}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1626402367}
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1984916661}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!1 &1614597351
 GameObject:
@@ -104702,13 +104702,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1714743567}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
   m_LocalPosition: {x: 70, y: 55, z: 14}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2132847344}
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1984916661}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!1 &1717859086
 GameObject:
@@ -121374,10 +121374,13 @@ Transform:
   m_GameObject: {fileID: 1984916659}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 112.21854, y: -29.685394, z: 118.446686}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 815764343}
+  - {fileID: 1714743569}
+  - {fileID: 1612058766}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1984916663
@@ -125123,7 +125126,7 @@ Transform:
   m_GameObject: {fileID: 2049094799}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 70, y: 55, z: 14}
+  m_LocalPosition: {x: 70, y: 55, z: 54}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -125591,7 +125594,7 @@ MonoBehaviour:
     type: 3}
   CoilObject: {fileID: 7792943061729523452, guid: 8224dcca82be3864ab5df787d7bb246e,
     type: 3}
-  outlineMaterial: {fileID: 2100000, guid: eb5492c460d386140b43fd8dc05530f4, type: 2}
+  clickedMaterial: {fileID: 0}
   dbConnectText: {fileID: 58274377}
   coilObjectList: {fileID: 1054866010}
   skidObjectList: {fileID: 987533173}
@@ -131771,9 +131774,6 @@ SceneRoots:
   m_Roots:
   - {fileID: 2049094802}
   - {fileID: 28751425}
-  - {fileID: 815764343}
-  - {fileID: 1714743569}
-  - {fileID: 1612058766}
   - {fileID: 1984916661}
   - {fileID: 882911525}
   - {fileID: 257660902}
