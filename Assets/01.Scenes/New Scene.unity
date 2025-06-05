@@ -113236,7 +113236,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fencePrefab: {fileID: 9158645030004131863, guid: 4f57950c12a5de54fb618faba7b4ad0c,
     type: 3}
-  doorPrefab: {fileID: 761735335190093297, guid: 668458802d4ce5142bddfe66af1e16c0,
+  doorPrefab: {fileID: 8352784603280068690, guid: 668458802d4ce5142bddfe66af1e16c0,
     type: 3}
 --- !u!4 &1862813067
 Transform:
@@ -125125,8 +125125,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2049094799}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 70, y: 55, z: 54}
+  m_LocalRotation: {x: 0.272532, y: 0.4030582, z: -0.12708373, w: 0.86436117}
+  m_LocalPosition: {x: 0, y: 40, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
