@@ -1,158 +1,148 @@
+using MySql.Data.MySqlClient;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using UnityEngine;
+using Newtonsoft.Json;
+using static Unity.Burst.Intrinsics.X86.Avx;
+using static UnityEditor.PlayerSettings;
 using Color = UnityEngine.Color;
+using Newtonsoft.Json.Linq;
+
 
 public class FenceManager : MonoBehaviour
 {
+    private MySqlConnection connection;
+
     public GameObject fencePrefab;
     public GameObject doorPrefab;
     int fenceGap = 2;
-    int lightFlag = 0;  //0,1,2->11의 빨,노,초 / 3,4,5->12의 빨,노,초
+    int lightFlag = 0;  //0,1,2,3 -> X,빨,노,초
+
+
+    List<int> doorIndex = new List<int>();
+    string doorNames;
+    List<GameObject> safeDoorObject = new List<GameObject>();
 
     void Start()
     {
+        connection = DatabaseConnection.Instance.Connection;
 
-        List<Point> fencePoints = new List<Point> { new Point(39, 24), new Point(39, 2), new Point(93, 2), new Point(93, 24) };
-        List<Point> doorPoints = new List<Point> { new Point(39, 22), new Point(39, 10), new Point(50, 2), new Point(93, 10), new Point(50, 24) };
-        //List<Point> doorPoints = new List<Point> { new Point(50, 2) };
+
+        List<Point> fencePoints = new List<Point>();
+        List<Point> doorPoints = new List<Point>();
+
+        const string query = "SELECT Name, Pos1, Pos2 FROM test_draw WHERE Name LIKE 'Safe_%';";
+        if (connection != null)
+        {
+            using (MySqlCommand cmd = new MySqlCommand(query, connection))
+            {
+                using (MySqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        doorNames = "";
+                        fencePoints.Clear();
+                        doorPoints.Clear();
+
+                        doorNames = reader.GetString("Name");
+                        doorNames = doorNames.Substring(5); // "Safe_" 접두사 제거
+
+                        string pos1Json = reader.GetString("Pos1");
+                        var pos1Array = JArray.Parse(pos1Json);
+                        foreach (var point in pos1Array)
+                        {
+                            int x = point[0].Value<int>();
+                            int y = point[1].Value<int>();
+                            fencePoints.Add(new Point(x, y));
+                        }
+
+                        // Pos2 파싱
+                        string pos2Json = reader.GetString("Pos2");
+                        var pos2Array = JArray.Parse(pos2Json);
+                        foreach (var point in pos2Array)
+                        {
+                            int x = point[0].Value<int>();
+                            int y = point[1].Value<int>();
+                            doorPoints.Add(new Point(x, y));
+                        }
+
+                        DrawFence(fencePoints, doorPoints);
+                    }
+                }
+            }
+        }
+
+
+        //List<string> doorNames = new List<string> { "Door_111", "Door_112", "Door_113", "Door_114", "Door_115" };
+        //List<Point> fencePoints = new List<Point> { new Point(39, 24), new Point(39, 2), new Point(93, 2), new Point(93, 24) };
+
+        ////List<Point> doorPoints = new List<Point> { new Point(39, 22), new Point(39, 15), new Point(50, 2), new Point(93, 10), new Point(50, 24) };
+        //List<Point> doorPoints = new List<Point>();
 
         //SkidPointsToFencePoints(fencePoints);
-        DrawFence(fencePoints, doorPoints);
-        // DrawFence11();
+        //DrawFence(fencePoints, doorPoints);
+
+        // 위치만 그리기
+        // Draw DB의 Name이 Safe어쩌구인것만 읽어서 그린다
+        // 그런데 그때 SafeDoorStatus를 Join해서 동, 번호, span까지
+        StartCoroutine(UpdateSafeDoorStatusCoroutine());
     }
-    
+
     void Update()
     {
+        // 안전문 상태만 읽어서 함수 호출
+        // 실제 안전문 상태 바꿀 함수는 SafeDoor.cs에 구현되어 있음
         if (Input.GetKeyDown(KeyCode.Space))
         {
             LightTest();
         }
     }
-    void DrawFence11()
-    {
-        int DxCount = 11;
-        int DyCount = 27;
-
-        int xPoint = 39;
-        int zPoint = 24;
-
-        for (int i = 0; i < DxCount; i++)
-        {
-            GameObject fence = Instantiate(fencePrefab, new Vector3(xPoint, 0, zPoint - i * fenceGap), Quaternion.identity);
-            fence.name = "FENCE_11";
-        }
-
-        zPoint -= 2 * DxCount;
-        for (int i = 0; i < DyCount; i++)
-        {
-            GameObject fence = Instantiate(fencePrefab, new Vector3(xPoint + i * fenceGap, 0, zPoint), Quaternion.Euler(0, 270, 0));
-            fence.name = "FENCE_11";
-        }
-
-        xPoint += 2 * DyCount;
-        for (int i = 0; i < DxCount; i++)
-        {
-            GameObject fence = Instantiate(fencePrefab, new Vector3(xPoint, 0, zPoint + i * fenceGap), Quaternion.Euler(0, 180, 0));
-            fence.name = "FENCE_11";
-        }
-
-        zPoint += 2 * DxCount;
-        for (int i = 0; i < (DyCount - 1); i++)
-        {
-            GameObject fence = Instantiate(fencePrefab, new Vector3(xPoint - i * fenceGap, 0, zPoint), Quaternion.Euler(0, 90, 0));
-            fence.name = "FENCE_11";
-        }
-
-        // 안전문 추가
-        xPoint -= 2 * (DyCount - 1);
-        GameObject door = Instantiate(doorPrefab, new Vector3(xPoint, 0, zPoint), Quaternion.Euler(0, 90, 0));
-        door.name = "DOOR11";
-
-        GameObject lightGO = new GameObject("Light11");
-        lightGO.transform.SetParent(door.transform); // ✅ Door에 자식으로 붙임
-
-        // 위치를 Door 기준으로 적절히 배치 (예: 위쪽으로)
-        lightGO.transform.localPosition = new Vector3(0f, 1.5f, 0f);
-
-        Light light = lightGO.AddComponent<Light>();
-        light.type = LightType.Point;
-        light.range = 3f;
-        light.intensity = 1f;
-        light.enabled = false;
-
-        // GameObject lightGO = new GameObject("Light11");
-        // Light light = lightGO.AddComponent<Light>();
-        // light.type = LightType.Point;
-        // light.range = 3f;
-        // light.intensity = 1f;
-        // light.enabled = false;
-
-
-        GameObject halfFence = Instantiate(fencePrefab, new Vector3(xPoint - fenceGap / 2, 0, zPoint), Quaternion.Euler(0, 90, 0));
-        halfFence.name = "FENCE_11_HALF";
-        halfFence.transform.localScale = new Vector3(
-            halfFence.transform.localScale.x,
-            halfFence.transform.localScale.y,
-            halfFence.transform.localScale.z * 0.5f
-        );
-    }
     void LightTest()
     {
-        // lightFlag에 맞게 빛 효과 주기
-        int span = lightFlag / 3;
-        int colorIndex = lightFlag % 3;
+        //foreach (GameObject doorObject in safeDoorObject)
+        //{
+            
+        //    if (doorObject.GetComponent<SafeDoor>().NameKey == "115")
+        //    {
+        //        doorObject.GetComponent<SafeDoor>().testDoor();
+        //    }
+        //}
 
-        GameObject lightGO = GameObject.Find("Light" + (span + 11));
-        if (lightGO == null)
-        {
-            Debug.LogWarning("Light object not found for span: " + span);
-            return;
-        }
+        //int colorIndex = lightFlag % 4;
+        //lightFlag++;
+        //lightFlag %= 4;
 
-        Light light = lightGO.GetComponent<Light>();
-        if (light == null)
-        {
-            Debug.LogWarning("Light component missing on: " + lightGO.name);
-            return;
-        }
+        //GameObject LightG = GameObject.Find("LightGreen");
+        //GameObject LightR = GameObject.Find("LightRed");
+        //GameObject LightY = GameObject.Find("LightYellow");
 
-        // 다른 빛 비활성화
-        int otherSpan = (span == 0) ? 1 : 0;
-        GameObject otherLightGO = GameObject.Find("Light" + (otherSpan + 11));
-        if (otherLightGO != null)
-        {
-            Light otherLight = otherLightGO.GetComponent<Light>();
-            if (otherLight != null) otherLight.enabled = false;
-        }
+        //LightG.GetComponent<Light>().enabled = false;
+        //LightR.GetComponent<Light>().enabled = false;
+        //LightY.GetComponent<Light>().enabled = false;
 
-        // 빛 색상 및 위치 설정
-        GameObject doorGO = GameObject.Find("DOOR" + (span + 11));
-        if (doorGO == null)
-        {
-            Debug.LogWarning("Door not found: DOOR" + (span + 11));
-            return;
-        }
+        //Light light;
+        //if (colorIndex == 1)
+        //{
+        //    light = LightR.GetComponent<Light>();
+        //}
+        //else if (colorIndex == 2)
+        //{
+        //    light = LightY.GetComponent<Light>();
+        //}
+        //else if (colorIndex == 3)
+        //{
+        //    light = LightG.GetComponent<Light>();
+        //}
+        //else
+        //{
+        //    return;
+        //}
 
-        string[] colorNames = { "LightRed", "LightYellow", "LightGreen" };
-        Color[] colors = { Color.red, Color.yellow, Color.green };
+        //light.enabled = true;
 
-        Transform lightPos = doorGO.transform.Find(colorNames[colorIndex]);
-        if (lightPos == null)
-        {
-            Debug.LogWarning("Color point not found: " + colorNames[colorIndex]);
-            return;
-        }
 
-        light.transform.position = lightPos.position;
-        light.color = colors[colorIndex];
-        light.intensity = 1f;
-        light.enabled = true;
-
-        lightFlag++;
-        lightFlag %= 6;
     }
     void SkidPointsToFencePoints(List<Point> points)
     {
@@ -190,95 +180,63 @@ public class FenceManager : MonoBehaviour
             Vector3 p1 = new Vector3(point1.X, 0, point1.Y);
             Vector3 p2 = new Vector3(point2.X, 0, point2.Y);
 
-            // 펜스 포인트 사이에 존재하는 안전문 포인트 리스트
-            List<Vector3> nowDoors = new List<Vector3>();
-            foreach (Point door in doors)
+
+            // index랑 같이 정렬되어야 하니까 튜플로 묶어서 List 만들기
+            List<(Vector3 pos, int index)> doorData = new List<(Vector3, int)>();
+            for (int d = 0; d < doors.Count; d++)
             {
+                Point door = doors[d];
                 if (IsBetween(door, point1, point2))
-                    nowDoors.Add(new Vector3(door.X, 0, door.Y));
+                {
+                    Vector3 vec = new Vector3(door.X, 0, door.Y);
+                    doorData.Add((vec, d));
+                }
             }
-            // point1과 거리를 기준으로 정렬
-            if (nowDoors.Count > 0)
+
+            if (doorData.Count > 0)
             {
-                nowDoors = nowDoors.OrderBy(p => Vector3.Distance(new Vector3(point1.X, 0, point1.Y), p)).ToList();
-                Debug.Log($"펜스 사이에 있는 안전문: {nowDoors}");
-                DrawFencesBetween(p1, p2, nowDoors);
+                // point1과 거리를 기준으로 정렬
+                doorData = doorData
+                    .OrderBy(item => Vector3.Distance(new Vector3(point1.X, 0, point1.Y), item.pos))
+                    .ToList();
             }
-            else
-            {
-                DrawFencesBetween(p1, p2);
-            }
-        }
-    }
-    void DrawFencesBetween(Vector3 p1, Vector3 p2)
-    {
-        Debug.Log($"{p1} -> {p2}");
-        bool xHalf = Mathf.Abs(p1.x - p2.x) % 2 == 1;
-        bool zHalf = Mathf.Abs(p1.z - p2.z) % 2 == 1;
 
-        float dist = Vector3.Distance(p1, p2);
-        int segmentCount = Mathf.FloorToInt(dist / fenceGap);
+            // 튜플 다시 분리
+            List<Vector3> nowDoors = doorData.Select(item => item.pos).ToList();
+            doorIndex = doorData.Select(item => item.index).ToList();
 
-        // 방향 벡터 계산
-        Vector3 direction = (p1 - p2).normalized;   // 방향(p1 - p2)
+            //// 펜스 포인트 사이에 존재하는 안전문 포인트 리스트
+            //doorIndex.Clear();
+            //List<Vector3> nowDoors = new List<Vector3>();
+            //for (int d = 0; d < doors.Count; d++)
+            //{
+            //    Point door = doors[d];
+            //    if (IsBetween(door, point1, point2))
+            //    {
+            //        nowDoors.Add(new Vector3(door.X, 0, door.Y));
+            //        doorIndex.Add(d);
+            //    }
+            //}
 
-        // 회전: 자동 회전 감지
-        Quaternion rotation = Quaternion.LookRotation(direction);
-
-        float fenceLocation = 0f;
-        for (int i = 0; i < segmentCount; i++)
-        {
-            Vector3 pos = p1 - direction * (fenceLocation * fenceGap);
-            float next = 1.0f;
-            
-            GameObject fence = Instantiate(fencePrefab, pos, rotation);
-            fence.transform.SetParent(transform);
-
-            fenceLocation += next;
-        }
-
-        // 반쪽 펜스 처리
-        if (xHalf)
-        {
-            Debug.Log("FENCE_X_HALFHALFHALFHALFHALF");
-            Vector3 halfPos = p1 + direction * (segmentCount * fenceGap * 1.5f);
-            GameObject halfFence = Instantiate(fencePrefab, halfPos, rotation);
-            halfFence.transform.localScale = new Vector3(
-                halfFence.transform.localScale.x,
-                halfFence.transform.localScale.y,
-                halfFence.transform.localScale.z * 0.5f
-            );
-            halfFence.name = "FENCE_X_HALFHALFHALFHALFHALF";
-            halfFence.transform.SetParent(transform);
-        }
-        if (zHalf)
-        {
-            Debug.Log("FENCE_Z_HALFHALFHALFHALFHALF");
-            Vector3 halfPos = p1 + direction * (segmentCount * fenceGap * 1.5f);
-            GameObject halfFence = Instantiate(fencePrefab, halfPos, rotation);
-            halfFence.transform.localScale = new Vector3(
-                halfFence.transform.localScale.x,
-                halfFence.transform.localScale.y,
-                halfFence.transform.localScale.z * 0.5f
-            );
-            halfFence.name = "FENCE_Z_HALFHALFHALFHALFHALF";
-            halfFence.transform.SetParent(transform);
+            //if (nowDoors.Count > 0)
+            //{
+            //    // point1과 거리를 기준으로 정렬
+            //    nowDoors = nowDoors.OrderBy(p => Vector3.Distance(new Vector3(point1.X, 0, point1.Y), p)).ToList();
+            //}
+            DrawFencesBetween(p1, p2, nowDoors);
         }
     }
     void DrawFencesBetween(Vector3 p1, Vector3 p2, List<Vector3> doors)
     {
-        Debug.Log($"{p1} -> {p2}");
-        // 방향 벡터 계산
-        Vector3 direction = (p1 - p2).normalized;   // 방향(p1 - p2)
-        Debug.Log($"direction : {direction}");
-        // 회전: 자동 회전 감지
-        Quaternion rotation = Quaternion.LookRotation(direction);
+        Vector3 direction = (p1 - p2).normalized;                   // 방향벡터
+        Quaternion rotation = Quaternion.LookRotation(direction);   // 회전: 자동 회전 감지
+        float dist = Vector3.Distance(p1, p2);                      // 거리
+        int segmentCount = Mathf.FloorToInt(dist / fenceGap);       // 몇개
 
-
+        // 마지막에 반쪽 펜스 그리는가?
         bool xHalf = false;
         bool zHalf = false;
-        bool isDoor = doors.Count > 0;  // 문이 있는지 확인
-        if (direction.x == 0)   // 세로
+        if (direction.x == 0)       // 세로
         {
             if (Mathf.Abs(p1.z - p2.z) % 2 == 1)
                 zHalf = true;
@@ -289,116 +247,39 @@ public class FenceManager : MonoBehaviour
                 xHalf = true;
         }
 
-        float dist = Vector3.Distance(p1, p2);
-        int segmentCount = Mathf.FloorToInt(dist / fenceGap);
-
-        float fenceLocation = 0f;
+        // 한칸씩 그리기
         for (int i = 0; i < segmentCount; i++)
         {
-            if (fenceLocation >= segmentCount)
-            {
-                break;
-            }
-            Vector3 pos = p1 - direction * (fenceLocation * fenceGap);
-            Vector3 tmp = p1 - direction * ((fenceLocation + 0.5f) * fenceGap);
-            float next = 0.0f;
+            Vector3 pos = p1 - direction * (i * fenceGap);              // 한칸 위치
+            Vector3 tmp = p1 - direction * ((i + 0.5f) * fenceGap);     // 반칸 더 간 위치
+            bool isDrawDoor = false;
             if (doors.Count > 0 && doors[0] != null)
             {
-                if (direction.x == 0)// 세로로 그려짐
-                {
-                    if (doors[0].z == pos.z)
-                    {
-                        GameObject door = Instantiate(doorPrefab, pos, rotation);
-                        door.transform.SetParent(transform);
-
-                        GameObject halfFence = Instantiate(fencePrefab, tmp, rotation);
-                        halfFence.transform.localScale = new Vector3(
-                            halfFence.transform.localScale.x,
-                            halfFence.transform.localScale.y,
-                            halfFence.transform.localScale.z * 0.5f
-                        );
-                        halfFence.name = "FENCE_Z_WITH_DOOR";
-                        halfFence.transform.SetParent(transform);
-
-                        next = 1.0f;
-                    }
-                    else if (doors[0].z == tmp.z)
-                    {
-                        GameObject halfFence = Instantiate(fencePrefab, pos, rotation);
-                        halfFence.transform.localScale = new Vector3(
-                            halfFence.transform.localScale.x,
-                            halfFence.transform.localScale.y,
-                            halfFence.transform.localScale.z * 0.5f
-                        );
-                        halfFence.name = "FENCE_Z_WITH_DOOR";
-                        halfFence.transform.SetParent(transform);
-
-                        GameObject door = Instantiate(doorPrefab, tmp, rotation);
-                        door.transform.SetParent(transform);
-
-                        next = 1.0f;
-                    }
-                }
-                else if (direction.z == 0)// 가로로 그려짐
-                {
-                    if (doors[0].x == pos.x)
-                    {
-                        GameObject door = Instantiate(doorPrefab, pos, rotation);
-                        door.transform.SetParent(transform);
-
-                        GameObject halfFence = Instantiate(fencePrefab, tmp, rotation);
-                        halfFence.transform.localScale = new Vector3(
-                            halfFence.transform.localScale.x,
-                            halfFence.transform.localScale.y,
-                            halfFence.transform.localScale.z * 0.5f
-                        );
-                        halfFence.name = "FENCE_X_WITH_DOOR";
-                        halfFence.transform.SetParent(transform);
-
-                        next = 1.0f;
-                    }
-                    else if (doors[0].x == tmp.x)
-                    {
-                        GameObject halfFence = Instantiate(fencePrefab, pos, rotation);
-                        halfFence.transform.localScale = new Vector3(
-                            halfFence.transform.localScale.x,
-                            halfFence.transform.localScale.y,
-                            halfFence.transform.localScale.z * 0.5f
-                        );
-                        halfFence.name = "FENCE_X_WITH_DOOR";
-                        halfFence.transform.SetParent(transform);
-
-                        GameObject door = Instantiate(doorPrefab, tmp, rotation);
-                        door.transform.SetParent(transform);
-                        next = 1.0f;
-                    }
-                }
+                isDrawDoor = DrawSafeDoor(doors[0], direction, pos, tmp);// 안전문 그리면 true 반환
             }
 
-            if (next == 0.0f)
+
+            if (isDrawDoor)
             {
-                GameObject fence = Instantiate(fencePrefab, pos, rotation);
-                fence.transform.SetParent(transform);
-                next = 1.0f;
+                doors.RemoveAt(0);
+                doorIndex.RemoveAt(0);
             }
             else
             {
-                doors.RemoveAt(0);
-                Debug.Log("문 생성");
+                GameObject fence = Instantiate(fencePrefab, pos, rotation);
+                fence.transform.SetParent(transform);
             }
-
-            fenceLocation += next;
         }
 
         // 반쪽 펜스 처리
         if (xHalf || zHalf)
         {
-            Vector3 halfPos = p1 - direction * (fenceLocation * fenceGap);
+            Vector3 halfPos = p1 - direction * (segmentCount * fenceGap);
             GameObject halfFence = Instantiate(fencePrefab, halfPos, rotation);
             halfFence.transform.localScale = new Vector3(
-                halfFence.transform.localScale.x * (xHalf ? 0.5f : 1.0f),
+                halfFence.transform.localScale.x,
                 halfFence.transform.localScale.y,
-                halfFence.transform.localScale.z * (zHalf ? 0.5f : 1.0f)
+                halfFence.transform.localScale.z * 0.5f
             );
             halfFence.name = $"FENCE_HALFHALFHALFHALFHALF";
             halfFence.transform.SetParent(transform);
@@ -418,5 +299,119 @@ public class FenceManager : MonoBehaviour
 
         Debug.Log($"point {p} / between {a} and {b}");
         return true;
+    }
+    bool DrawSafeDoor(Vector3 doorVec, Vector3 direction, Vector3 pos, Vector3 tmp)
+    {
+        Quaternion rotation = Quaternion.LookRotation(direction);
+        if (direction.x == 0)// 세로로 그려짐
+        {
+            if (doorVec.z == pos.z)
+            {
+                GameObject door = Instantiate(doorPrefab, pos, rotation);
+                door.transform.SetParent(transform);
+                door.GetComponent<SafeDoor>().NameKey = doorNames.Substring(doorIndex[0] * 3, 3);
+                safeDoorObject.Add(door);
+
+                GameObject halfFence = Instantiate(fencePrefab, tmp, rotation);
+                halfFence.transform.localScale = new Vector3(
+                    halfFence.transform.localScale.x,
+                    halfFence.transform.localScale.y,
+                    halfFence.transform.localScale.z * 0.5f
+                );
+                halfFence.name = "FENCE_Z_WITH_DOOR";
+                halfFence.transform.SetParent(transform);
+
+                return true;
+            }
+            else if (doorVec.z == tmp.z)
+            {
+                GameObject halfFence = Instantiate(fencePrefab, pos, rotation);
+                halfFence.transform.localScale = new Vector3(
+                    halfFence.transform.localScale.x,
+                    halfFence.transform.localScale.y,
+                    halfFence.transform.localScale.z * 0.5f
+                );
+                halfFence.name = "FENCE_Z_WITH_DOOR";
+                halfFence.transform.SetParent(transform);
+
+                GameObject door = Instantiate(doorPrefab, tmp, rotation);
+                door.transform.SetParent(transform);
+                door.GetComponent<SafeDoor>().NameKey = doorNames.Substring(doorIndex[0] * 3, 3);
+                safeDoorObject.Add(door);
+
+                return true;
+            }
+        }
+        else if (direction.z == 0)// 가로로 그려짐
+        {
+            if (doorVec.x == pos.x)
+            {
+                GameObject door = Instantiate(doorPrefab, pos, rotation);
+                door.transform.SetParent(transform);
+                door.GetComponent<SafeDoor>().NameKey = doorNames.Substring(doorIndex[0] * 3, 3);
+                safeDoorObject.Add(door);
+
+                GameObject halfFence = Instantiate(fencePrefab, tmp, rotation);
+                halfFence.transform.localScale = new Vector3(
+                    halfFence.transform.localScale.x,
+                    halfFence.transform.localScale.y,
+                    halfFence.transform.localScale.z * 0.5f
+                );
+                halfFence.name = "FENCE_X_WITH_DOOR";
+                halfFence.transform.SetParent(transform);
+
+                return true;
+            }
+            else if (doorVec.x == tmp.x)
+            {
+                GameObject halfFence = Instantiate(fencePrefab, pos, rotation);
+                halfFence.transform.localScale = new Vector3(
+                    halfFence.transform.localScale.x,
+                    halfFence.transform.localScale.y,
+                    halfFence.transform.localScale.z * 0.5f
+                );
+                halfFence.name = "FENCE_X_WITH_DOOR";
+                halfFence.transform.SetParent(transform);
+
+                GameObject door = Instantiate(doorPrefab, tmp, rotation);
+                door.transform.SetParent(transform);
+                door.GetComponent<SafeDoor>().NameKey = doorNames.Substring(doorIndex[0] * 3, 3);
+                safeDoorObject.Add(door);
+
+                return true;
+            }
+        }
+        return false;
+    }
+    IEnumerator UpdateSafeDoorStatusCoroutine()
+    {
+        while (true)
+        {
+            const string query = "SELECT Name, State FROM test_safedoorstatus;";
+            if (connection != null)
+            {
+                using (MySqlCommand cmd = new MySqlCommand(query, connection))
+                {
+                    using (MySqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            string name = reader.GetString("Name");
+                            int state = reader.GetInt32("State");
+
+                            foreach (GameObject doorObject in safeDoorObject)
+                            {
+                                if (doorObject.GetComponent<SafeDoor>().NameKey == name)
+                                {
+                                    doorObject.GetComponent<SafeDoor>().SetState(state);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            yield return new WaitForSeconds(1.0f);
+        }
     }
 }
