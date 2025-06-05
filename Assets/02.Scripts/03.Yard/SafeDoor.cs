@@ -33,39 +33,32 @@ public class SafeDoor : MonoBehaviour
         Light LightY = transform.Find("LightYellow").GetComponent<Light>();
         Light LightG = transform.Find("LightGreen").GetComponent<Light>();
 
+        bool[] lights = { false, false, false };    // »¡, ³ë, ÃÊ
+
         switch (state)
         {
-            case State.None:
-                // ´Ù ²ö´Ù
-                LightR.enabled = false;
-                LightY.enabled = false;
-                LightG.enabled = false;
-                break;
             case State.Red:
                 // »¡°­Å²´Ù
-                LightR.enabled = true;
-                LightY.enabled = false;
-                LightG.enabled = false;
+                lights[0] = true;
                 if (!isOpen)
                     ChangeDoor(true);
                 break;
             case State.Yellow:
                 // ³ë¶û Å²´Ù
-                LightR.enabled = false;
-                LightY.enabled = true;
-                LightG.enabled = false;
+                lights[1] = true;
                 if (isOpen)
                     ChangeDoor(false);
                 break;
             case State.Green:
                 // ÃÊ·Ï Å²´Ù
-                LightR.enabled = false;
-                LightY.enabled = false;
-                LightG.enabled = true;
+                lights[2] = true;
                 if (isOpen)
                     ChangeDoor(false);
                 break;
         }
+        LightR.enabled = lights[0];
+        LightY.enabled = lights[1];
+        LightG.enabled = lights[2];
     }
     public void ChangeDoor(bool isChangeToOpen)
     {
@@ -81,7 +74,6 @@ public class SafeDoor : MonoBehaviour
             // ¿¬´Ù
             StartCoroutine(RotateDoor(0, child));
             isOpen = true;
-            Debug.Log("¹® ¿­¸²! [" + NameKey + "]");
             
         }
         else
@@ -89,7 +81,6 @@ public class SafeDoor : MonoBehaviour
             // ´Ý´Â´Ù
             StartCoroutine(RotateDoor(-90, child));
             isOpen = false;
-            Debug.Log("¹® ´ÝÈû! [" + NameKey + "]");
         }
     }
     IEnumerator RotateDoor(float targetY, Transform doorHinge)

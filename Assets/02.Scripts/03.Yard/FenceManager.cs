@@ -9,6 +9,7 @@ using static Unity.Burst.Intrinsics.X86.Avx;
 using static UnityEditor.PlayerSettings;
 using Color = UnityEngine.Color;
 using Newtonsoft.Json.Linq;
+using System.Data;
 
 
 public class FenceManager : MonoBehaviour
@@ -21,19 +22,18 @@ public class FenceManager : MonoBehaviour
     int lightFlag = 0;  //0,1,2,3 -> X,빨,노,초
 
 
-    List<int> doorIndex = new List<int>();
-    string doorNames;
     List<GameObject> safeDoorObject = new List<GameObject>();
+    List<string> doorNames = new List<string>();
+    List<int> doorIndex = new List<int>();
 
     void Start()
     {
         connection = DatabaseConnection.Instance.Connection;
 
-
         List<Point> fencePoints = new List<Point>();
         List<Point> doorPoints = new List<Point>();
 
-        const string query = "SELECT Name, Pos1, Pos2 FROM test_draw WHERE Name LIKE 'Safe_%';";
+        const string query = "SELECT TypeNo, Name, Pos1, Pos2 FROM test_draw WHERE TypeNo LIKE 'Safe%';";
         if (connection != null)
         {
             using (MySqlCommand cmd = new MySqlCommand(query, connection))
@@ -42,33 +42,72 @@ public class FenceManager : MonoBehaviour
                 {
                     while (reader.Read())
                     {
-                        doorNames = "";
+                        doorNames.Clear();
                         fencePoints.Clear();
                         doorPoints.Clear();
 
-                        doorNames = reader.GetString("Name");
-                        doorNames = doorNames.Substring(5); // "Safe_" 접두사 제거
+                        string typeNo = reader.GetString("TypeNo");
 
-                        string pos1Json = reader.GetString("Pos1");
-                        var pos1Array = JArray.Parse(pos1Json);
-                        foreach (var point in pos1Array)
+                        // Name 파싱
+                        string nameJson = reader.IsDBNull("Name") ? null : reader.GetString("Name");
+                        if (!string.IsNullOrWhiteSpace(nameJson))
                         {
-                            int x = point[0].Value<int>();
-                            int y = point[1].Value<int>();
-                            fencePoints.Add(new Point(x, y));
+                            var nameArray = JArray.Parse(nameJson);
+                            foreach (var name in nameArray)
+                            {
+                                doorNames.Add(name.Value<string>());
+                            }
+                        }
+                        else
+                        {
+                            Debug.Log($"[{typeNo}]: 안전문 이름이 없는 구역입니다.");
+                        }
+                        
+
+                        // Pos1 파싱
+                        string pos1Json = reader.IsDBNull("Pos1") ? null : reader.GetString("Pos1");
+                        if (!string.IsNullOrWhiteSpace(pos1Json))
+                        {
+                            // Pos1이 비어있지 않으면 파싱
+                            var pos1Array = JArray.Parse(pos1Json);
+                            foreach (var point in pos1Array)
+                            {
+                                int x = point[0].Value<int>();
+                                int y = point[1].Value<int>();
+                                fencePoints.Add(new Point(x, y));
+                            }
+                        }
+                        else
+                        {
+                            Debug.LogError($"[{typeNo}]: 펜스 포인트가 없습니다.");
+                            continue;
                         }
 
                         // Pos2 파싱
-                        string pos2Json = reader.GetString("Pos2");
-                        var pos2Array = JArray.Parse(pos2Json);
-                        foreach (var point in pos2Array)
+                        string pos2Json = reader.IsDBNull("Pos2") ? null : reader.GetString("Pos2");
+                        if (!string.IsNullOrWhiteSpace(pos2Json))
                         {
-                            int x = point[0].Value<int>();
-                            int y = point[1].Value<int>();
-                            doorPoints.Add(new Point(x, y));
+                            var pos2Array = JArray.Parse(pos2Json);
+                            foreach (var point in pos2Array)
+                            {
+                                int x = point[0].Value<int>();
+                                int y = point[1].Value<int>();
+                                doorPoints.Add(new Point(x, y));
+                            }
+                        }
+                        else
+                        {
+                            Debug.Log($"[{typeNo}]: 안전문 포인트가 없는 구역입니다.");
                         }
 
-                        DrawFence(fencePoints, doorPoints);
+                        if (doorNames.Count == doorPoints.Count)
+                        {
+                            DrawFence(fencePoints, doorPoints);
+                        }
+                        else
+                        {
+                            Debug.LogError($"[{typeNo}]: DB의 DoorNames 길이랑 DoorPoints 길이가 다릅니다.");
+                        }
                     }
                 }
             }
@@ -309,7 +348,7 @@ public class FenceManager : MonoBehaviour
             {
                 GameObject door = Instantiate(doorPrefab, pos, rotation);
                 door.transform.SetParent(transform);
-                door.GetComponent<SafeDoor>().NameKey = doorNames.Substring(doorIndex[0] * 3, 3);
+                door.GetComponent<SafeDoor>().NameKey = doorNames[doorIndex[0]].Substring(4);
                 safeDoorObject.Add(door);
 
                 GameObject halfFence = Instantiate(fencePrefab, tmp, rotation);
@@ -336,7 +375,7 @@ public class FenceManager : MonoBehaviour
 
                 GameObject door = Instantiate(doorPrefab, tmp, rotation);
                 door.transform.SetParent(transform);
-                door.GetComponent<SafeDoor>().NameKey = doorNames.Substring(doorIndex[0] * 3, 3);
+                door.GetComponent<SafeDoor>().NameKey = doorNames[doorIndex[0]].Substring(4);
                 safeDoorObject.Add(door);
 
                 return true;
@@ -348,7 +387,7 @@ public class FenceManager : MonoBehaviour
             {
                 GameObject door = Instantiate(doorPrefab, pos, rotation);
                 door.transform.SetParent(transform);
-                door.GetComponent<SafeDoor>().NameKey = doorNames.Substring(doorIndex[0] * 3, 3);
+                door.GetComponent<SafeDoor>().NameKey = doorNames[doorIndex[0]].Substring(4);
                 safeDoorObject.Add(door);
 
                 GameObject halfFence = Instantiate(fencePrefab, tmp, rotation);
@@ -375,7 +414,7 @@ public class FenceManager : MonoBehaviour
 
                 GameObject door = Instantiate(doorPrefab, tmp, rotation);
                 door.transform.SetParent(transform);
-                door.GetComponent<SafeDoor>().NameKey = doorNames.Substring(doorIndex[0] * 3, 3);
+                door.GetComponent<SafeDoor>().NameKey = doorNames[doorIndex[0]].Substring(4);
                 safeDoorObject.Add(door);
 
                 return true;
