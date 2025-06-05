@@ -72,14 +72,14 @@ public class SafeDoor : MonoBehaviour
         if (isChangeToOpen)
         {
             // ¿¬´Ù
-            StartCoroutine(RotateDoor(0, child));
+            StartCoroutine(RotateDoor(-90, child));
             isOpen = true;
             
         }
         else
         {
             // ´Ý´Â´Ù
-            StartCoroutine(RotateDoor(-90, child));
+            StartCoroutine(RotateDoor(0, child));
             isOpen = false;
         }
     }
@@ -90,7 +90,7 @@ public class SafeDoor : MonoBehaviour
 
         Transform child = transform.Find("Door");
         Quaternion startRot = doorHinge.localRotation;
-        Quaternion endRot = Quaternion.Euler(0, targetY, 90);
+        Quaternion endRot = Quaternion.Euler(0, targetY, 0);
 
         while (time < duration)
         {
@@ -100,9 +100,5 @@ public class SafeDoor : MonoBehaviour
         }
 
         doorHinge.localRotation = endRot;
-    }
-    void Update()
-    {
-        
     }
 }
