@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "com.github-glitchenzo.nugetforunity": "https://github.com/GlitchEnzo/NuGetForUnity.git?path=/src/NuGetForUnity",
+    "com.pimdewitte.unitymainthreaddispatcher": "file:D:/__TF/UnityMainThreadDispatcher",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.2d.tilemap": "1.0.0",
     "com.unity.ads": "4.4.2",

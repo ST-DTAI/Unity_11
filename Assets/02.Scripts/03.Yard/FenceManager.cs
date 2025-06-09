@@ -1,17 +1,21 @@
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json.Linq;
+using PimDeWitte.UnityMainThreadDispatcher;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Net.Sockets;
+using System.Threading;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 
 public class FenceManager : MonoBehaviour
 {
-    private MySqlConnection connection;
-
     public GameObject fencePrefab;
     public GameObject doorPrefab;
     readonly int fenceGap = 2;
@@ -20,16 +24,18 @@ public class FenceManager : MonoBehaviour
     List<string> doorNames = new List<string>();
     List<int> doorIndex = new List<int>();
 
+    private Thread thread_safedoor;
+    private volatile bool isRunning = true;
+
     void Start()
     {
-        connection = DatabaseConnection.Instance.Connection;
-
         List<Point> fencePoints = new List<Point>();
         List<Point> doorPoints = new List<Point>();
 
         const string query = "SELECT TypeNo, Name, Pos1, Pos2 FROM unity_draw WHERE TypeNo LIKE 'Safe%';";
-        if (connection != null)
+        using (MySqlConnection connection = new MySqlConnection(DatabaseConnection.Instance.ConnStr))
         {
+            connection.Open();
             using (MySqlCommand cmd = new MySqlCommand(query, connection))
             {
                 using (MySqlDataReader reader = cmd.ExecuteReader())
@@ -106,74 +112,90 @@ public class FenceManager : MonoBehaviour
                 }
             }
         }
+        ThreadStart();
+        //StartCoroutine(UpdateSafeDoorStatusCoroutine());
+    }
+    void OnDestroy()
+    {
+        isRunning = false;
+        if (thread_safedoor != null)
+        {
+            thread_safedoor.Join(5000); // 기다렸다가
+            thread_safedoor = null;
+            Debug.Log("==FenceManager destroyed and thread stopped==");
+        }
+        
+        foreach (GameObject door in safeDoorObject)
+        {
+            Destroy(door);
+        }
+        safeDoorObject.Clear();
+    }
+    void ThreadStart()
+    {
+        if (thread_safedoor != null)
+        {
+            isRunning = false;
+            thread_safedoor.Join(); // 기다렸다가
+            thread_safedoor = null;
+            return;
+        }
 
-
-        //List<string> doorNames = new List<string> { "Door_111", "Door_112", "Door_113", "Door_114", "Door_115" };
-        //List<Point> fencePoints = new List<Point> { new Point(39, 24), new Point(39, 2), new Point(93, 2), new Point(93, 24) };
-
-        ////List<Point> doorPoints = new List<Point> { new Point(39, 22), new Point(39, 15), new Point(50, 2), new Point(93, 10), new Point(50, 24) };
-        //List<Point> doorPoints = new List<Point>();
-
-        //SkidPointsToFencePoints(fencePoints);
-        //DrawFence(fencePoints, doorPoints);
-
-        StartCoroutine(UpdateSafeDoorStatusCoroutine());
+        isRunning = true;
+        thread_safedoor = new Thread(SafeDoor_Thread);
+        thread_safedoor.IsBackground = true;
+        thread_safedoor.Start();
     }
 
-    void Update()
+    private void SafeDoor_Thread()
     {
-        // 안전문 상태만 읽어서 함수 호출
-        // 실제 안전문 상태 바꿀 함수는 SafeDoor.cs에 구현되어 있음
-        if (Input.GetKeyDown(KeyCode.Space))
+        while (isRunning)
         {
-            LightTest();
+            try
+            {
+                const string query = "SELECT Name, State FROM unity_safedoorstatus;";
+                using (MySqlConnection connection = new MySqlConnection(DatabaseConnection.Instance.ConnStr))
+                {
+                    connection.Open();
+                    using (MySqlCommand cmd = new MySqlCommand(query, connection))
+                    {
+                        using (MySqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read() && isRunning)
+                            {
+                                string name = reader.GetString("Name");
+                                int state = reader.GetInt32("State");
+
+                                // 메인 스레드에서 SafeDoor 업데이트
+                                if (UnityMainThreadDispatcher.Instance() != null)
+                                {
+                                    UnityMainThreadDispatcher.Instance().Enqueue(() =>
+                                    {
+                                        foreach (GameObject doorObject in safeDoorObject)
+                                        {
+                                            if (doorObject.GetComponent<SafeDoor>().NameKey == name)
+                                            {
+                                                doorObject.GetComponent<SafeDoor>().SetState(state);
+                                                break;
+                                            }
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                if (isRunning)
+                    Debug.LogError("SafeDoor_Thread error: " + ex.Message);
+            }
+
+            Thread.Sleep(1000);
         }
     }
-    void LightTest()
-    {
-        //foreach (GameObject doorObject in safeDoorObject)
-        //{
-            
-        //    if (doorObject.GetComponent<SafeDoor>().NameKey == "115")
-        //    {
-        //        doorObject.GetComponent<SafeDoor>().testDoor();
-        //    }
-        //}
 
-        //int colorIndex = lightFlag % 4;
-        //lightFlag++;
-        //lightFlag %= 4;
-
-        //GameObject LightG = GameObject.Find("LightGreen");
-        //GameObject LightR = GameObject.Find("LightRed");
-        //GameObject LightY = GameObject.Find("LightYellow");
-
-        //LightG.GetComponent<Light>().enabled = false;
-        //LightR.GetComponent<Light>().enabled = false;
-        //LightY.GetComponent<Light>().enabled = false;
-
-        //Light light;
-        //if (colorIndex == 1)
-        //{
-        //    light = LightR.GetComponent<Light>();
-        //}
-        //else if (colorIndex == 2)
-        //{
-        //    light = LightY.GetComponent<Light>();
-        //}
-        //else if (colorIndex == 3)
-        //{
-        //    light = LightG.GetComponent<Light>();
-        //}
-        //else
-        //{
-        //    return;
-        //}
-
-        //light.enabled = true;
-
-
-    }
     void SkidPointsToFencePoints(List<Point> points)
     {
         int pointCount = points.Count;
@@ -310,7 +332,7 @@ public class FenceManager : MonoBehaviour
         float sqLen = (b.X - a.X) * (b.X - a.X) + (b.Y - a.Y) * (b.Y - a.Y);
         if (dot > sqLen) return false;
 
-        Debug.Log($"point {p} / between {a} and {b}");
+        //Debug.Log($"point {p} / between {a} and {b}");
         return true;
     }
     bool DrawSafeDoor(Vector3 doorVec, Vector3 direction, Vector3 pos, Vector3 tmp)
@@ -354,35 +376,40 @@ public class FenceManager : MonoBehaviour
         }
         return false;
     }
-    IEnumerator UpdateSafeDoorStatusCoroutine()
-    {
-        while (true)
-        {
-            const string query = "SELECT Name, State FROM unity_safedoorstatus;";
-            if (connection != null)
-            {
-                using (MySqlCommand cmd = new MySqlCommand(query, connection))
-                {
-                    using (MySqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            string name = reader.GetString("Name");
-                            int state = reader.GetInt32("State");
+    //IEnumerator UpdateSafeDoorStatusCoroutine()
+    //{
+    //    while (true)
+    //    {
+    //        const string query = "SELECT Name, State FROM unity_safedoorstatus;";
+    //        if (connection != null)
+    //        {
+    //            using (MySqlCommand cmd = new MySqlCommand(query, connection))
+    //            {
+    //                using (MySqlDataReader reader = cmd.ExecuteReader())
+    //                {
+    //                    while (reader.Read())
+    //                    {
+    //                        string name = reader.GetString("Name");
+    //                        int state = reader.GetInt32("State");
 
-                            foreach (GameObject doorObject in safeDoorObject)
-                            {
-                                if (doorObject.GetComponent<SafeDoor>().NameKey == name)
-                                {
-                                    doorObject.GetComponent<SafeDoor>().SetState(state);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+    //                        UnityMainThreadDispatcher.Instance().Enqueue(() =>
+    //                        {
+    //                            //Debug.Log($"SafeDoor {name} state: {state}");
+    //                            foreach (GameObject doorObject in safeDoorObject)
+    //                            {
+    //                                if (doorObject.GetComponent<SafeDoor>().NameKey == name)
+    //                                {
+    //                                    doorObject.GetComponent<SafeDoor>().SetState(state);
+    //                                    break;
+    //                                }
+    //                            }
+    //                        });
+    //                    }
+    //                }
+    //            }
+    //        }
 
-            yield return new WaitForSeconds(1.0f);
-        }
-    }
+    //        yield return new WaitForSeconds(1.0f);
+    //    }
+    //}
 }

@@ -7,6 +7,7 @@ public class DatabaseConnection : MonoBehaviour
 {
     public static DatabaseConnection Instance { get; private set; }
     private MySqlConnection connection;
+    public string ConnStr { get => $"server={host}; database={database}; uid={user}; pwd={password}; charset={charset};"; }
 
     [Header("DB Config")]
     public string host = "192.168.0.31";
