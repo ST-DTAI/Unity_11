@@ -14,6 +14,12 @@
       "dependencies": {},
       "hash": "698989e1642d269c3c7a015077ad8d2bae7c739a"
     },
+    "com.pimdewitte.unitymainthreaddispatcher": {
+      "version": "file:D:/__TF/UnityMainThreadDispatcher",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
+    },
     "com.unity.2d.sprite": {
       "version": "1.0.0",
       "depth": 0,
