@@ -165,7 +165,7 @@ public class YardSkidDbManager2 : MonoBehaviour
             {
                 GameObject newObject = Instantiate(
                 SkidObject,
-                new Vector3(skid.Dx * 0.001f, 0, skid.Dy * 0.001f),
+                new Vector3(skid.Dx * Global.UnityCorrectValue, 0, skid.Dy * Global.UnityCorrectValue),
                 Quaternion.Euler(0, skid.Dir, 0)
                 );
 
@@ -176,7 +176,7 @@ public class YardSkidDbManager2 : MonoBehaviour
             {
                 GameObject newObject = Instantiate(
                 SkidObject,
-                new Vector3(skid.Dx * 0.001f , 0, skid.Dy * 0.001f + 40),
+                new Vector3(skid.Dx * Global.UnityCorrectValue , 0, skid.Dy * Global.UnityCorrectValue + 40),
                 Quaternion.Euler(0, skid.Dir, 0)
                 );
 
@@ -193,7 +193,7 @@ public class YardSkidDbManager2 : MonoBehaviour
             {
                 GameObject newObject = Instantiate(
                     CoilObject,
-                    new Vector3(coil.Dx * 0.001f, coil.Dz * 0.001f - 0.9f, coil.Dy * 0.001f),
+                    new Vector3(coil.Dx * Global.UnityCorrectValue, coil.Dz * Global.UnityCorrectValue - 0.9f, coil.Dy * Global.UnityCorrectValue),
                     Quaternion.Euler(0, coil.Dir, 0)
                 );
 
@@ -213,7 +213,7 @@ public class YardSkidDbManager2 : MonoBehaviour
             {
                 GameObject newObject = Instantiate(
                     CoilObject,
-                    new Vector3(coil.Dx * 0.001f, coil.Dz * 0.001f - 0.9f, coil.Dy * 0.001f+40),
+                    new Vector3(coil.Dx * Global.UnityCorrectValue, coil.Dz * Global.UnityCorrectValue - 0.9f, coil.Dy * Global.UnityCorrectValue+40),
                     Quaternion.Euler(0, coil.Dir, 0)
                 );
                 newObject.name = "Coil_D2_" + coil.PdNo;

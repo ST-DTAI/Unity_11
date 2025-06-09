@@ -164,7 +164,7 @@ public class YardMapDBManager : MonoBehaviour
 
         foreach (YardMap skid in skids)
         {
-            Vector3 position = new Vector3(skid.Dx * 0.001f, 0, skid.Dy * 0.001f);
+            Vector3 position = new Vector3(skid.Dx * Global.UnityCorrectValue, 0, skid.Dy * Global.UnityCorrectValue);
             if (skid.Dong == 2)
             {
                 position.z += 40f;
@@ -196,7 +196,7 @@ public class YardMapDBManager : MonoBehaviour
 
         foreach (YardMap coil in coils)
         {
-            Vector3 position = new Vector3(coil.Dx * 0.001f, coil.Dz * 0.001f - 0.9f, coil.Dy * 0.001f);
+            Vector3 position = new Vector3(coil.Dx * Global.UnityCorrectValue, coil.Dz * Global.UnityCorrectValue - 0.9f, coil.Dy * Global.UnityCorrectValue);
             if (coil.Dong == 2)
             {
                 position.z += 40f;

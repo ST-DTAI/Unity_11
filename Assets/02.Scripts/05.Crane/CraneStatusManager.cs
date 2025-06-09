@@ -140,9 +140,9 @@ public class CraneStatusManager : MonoBehaviour
         if (craneStatusList.Count > 0)
         {
             CrStatus crane = craneStatusList[0];
-            targetPositionCrane1 = new Vector3(crane.Dx * 0.001f, craneRootObject1.transform.position.y, craneRootObject1.transform.position.z);
-            targetPositionHoist1 = new Vector3(craneRootObject1.transform.position.x, hoistRootObject1.transform.position.y, crane.Dy * 0.001f);
-            targetPositionLift1 = new Vector3(craneRootObject1.transform.position.x, crane.Dz * 0.001f, hoistRootObject1.transform.position.z);
+            targetPositionCrane1 = new Vector3(crane.Dx * Global.UnityCorrectValue, craneRootObject1.transform.position.y, craneRootObject1.transform.position.z);
+            targetPositionHoist1 = new Vector3(craneRootObject1.transform.position.x, hoistRootObject1.transform.position.y, crane.Dy * Global.UnityCorrectValue);
+            targetPositionLift1 = new Vector3(craneRootObject1.transform.position.x, crane.Dz * Global.UnityCorrectValue, hoistRootObject1.transform.position.z);
 
             liftRootObject1.transform.rotation = Quaternion.Euler(0, crane.SwivAng, 0);
             UpdateCoilObjectStatus(coilObject, crane.CrNo, crane.SwivAng, newParentTransform1, newParentTransform2, crane.Status);
@@ -153,9 +153,9 @@ public class CraneStatusManager : MonoBehaviour
         if (craneStatusList.Count > 1)
         {
             CrStatus crane = craneStatusList[1];
-            targetPositionCrane2 = new Vector3(crane.Dx * 0.001f, craneRootObject2.transform.position.y, craneRootObject2.transform.position.z);
-            targetPositionHoist2 = new Vector3(craneRootObject2.transform.position.x, hoistRootObject2.transform.position.y, crane.Dy * 0.001f);
-            targetPositionLift2 = new Vector3(craneRootObject2.transform.position.x, crane.Dz * 0.001f, hoistRootObject2.transform.position.z);
+            targetPositionCrane2 = new Vector3(crane.Dx * Global.UnityCorrectValue, craneRootObject2.transform.position.y, craneRootObject2.transform.position.z);
+            targetPositionHoist2 = new Vector3(craneRootObject2.transform.position.x, hoistRootObject2.transform.position.y, crane.Dy * Global.UnityCorrectValue);
+            targetPositionLift2 = new Vector3(craneRootObject2.transform.position.x, crane.Dz * Global.UnityCorrectValue, hoistRootObject2.transform.position.z);
 
             liftRootObject2.transform.rotation = Quaternion.Euler(0, crane.SwivAng, 0);
             UpdateCoilObjectStatus(coilObject, crane.CrNo, crane.SwivAng, newParentTransform1, newParentTransform2, crane.Status);
