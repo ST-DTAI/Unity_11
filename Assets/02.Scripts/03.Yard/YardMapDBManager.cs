@@ -79,7 +79,7 @@ public class YardMapDBManager : MonoBehaviour
         {
             try
             {
-                string query = "SELECT SkidNo, Dong, Skid, Sect, DxNo, DyNo, DzNo, Addr, Dx, Dy, Dz, Dir, MaxWid, MaxDia, PdYN, Hold, CrRev, SupRev, OutRev, FwdYN, BwdYN, PdNo, State, Width, Outdia, India, Thick, Weight, Temp, Date, ToNo FROM clts.yard_map;";
+                string query = "SELECT SkidNo, Dong, Skid, Sect, DxNo, DyNo, DzNo, Addr, Dx, Dy, Dz, Dir, MaxWid, MaxDia, PdYN, Hold, CrRev, SupRev, OutRev, FwdYN, BwdYN, PdNo, State, Width, Outdia, India, Thick, Weight, Temp, Date, ToNo FROM clts.yard_map_b;";
 
                 List<YardMap> newSkidsList = new List<YardMap>();
                 List<YardMap> newCoilsList = new List<YardMap>();
@@ -150,8 +150,24 @@ public class YardMapDBManager : MonoBehaviour
                         {
                             for (int i = 0; i < newSkidsList.Count; i++)
                             {
-                                if (newSkidsList[i].SkidNo != skidsList[i].SkidNo ||
-                                    newSkidsList[i].PdYN != skidsList[i].PdYN)
+                                if (newSkidsList[i].SkidNo != skidsList[i].SkidNo)
+                                {
+                                    hasChanged = true;
+                                    break;
+                                }
+                            }
+                        }
+
+
+                        if (newCoilsList.Count != coilsList.Count || hasChanged == true)
+                        {
+                            hasChanged = true;
+                        }
+                        else
+                        {
+                            for (int i = 0; i < newCoilsList.Count; i++)
+                            {
+                                if (newCoilsList[i].PdYN != coilsList[i].PdYN)
                                 {
                                     hasChanged = true;
                                     break;
@@ -174,6 +190,7 @@ public class YardMapDBManager : MonoBehaviour
                             Debug.Log("FetchSkidData() / FetchCoilData() 호출");
                             FetchSkidData();
                             FetchCoilData();
+                            Debug.Log("Yardmap_Thread: Data fetched and updated on main thread.");
                         });
                     }
                 }
