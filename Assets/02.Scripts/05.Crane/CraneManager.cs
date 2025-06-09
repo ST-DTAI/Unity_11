@@ -38,7 +38,8 @@ public class CraneManager : MonoBehaviour
 
     private void InitializeCranePosition()
     {
-        string query = "SELECT CrNo, DxOffset, MinDx, MaxDx, DyOffset, MinDy, MaxDy FROM cr_init ORDER BY CrNo;";
+        string query = "SELECT a.CrNo, a.DxOffset, a.MinDx, a.MaxDx, a.DyOffset, a.MinDy, a.MaxDy " +
+            "FROM cr_init a INNER JOIN cr_status b ON a.CrNo = b.CrNo ORDER BY CrNo;";
 
         if (connection != null)
         {
@@ -57,6 +58,8 @@ public class CraneManager : MonoBehaviour
                         int maxDy = reader.GetInt32("MaxDy");
 
                         GameObject crane = Instantiate(cranePrefab);
+                        ApplyCraneScale(crane);
+
                         crane.GetComponent<Crane>().crNo = crNo;
                         crane.GetComponent<Crane>().dxOffset = dxOffset ;
                         crane.GetComponent<Crane>().minDx = minDx ;
@@ -129,5 +132,23 @@ public class CraneManager : MonoBehaviour
 
             yield return new WaitForSeconds(updateInterval); // updateInterval 초마다 데이터 갱신
         }
+    }
+
+    private void ApplyCraneScale(GameObject crane)
+    {
+        // YardSetUpManager에서 mainColumnSpacing 가져오기
+        YardSetUpManager yardManager = FindObjectOfType<YardSetUpManager>();
+        if (yardManager == null)
+        {
+            Debug.LogWarning("YardSetUpManager가 씬에 존재하지 않습니다.");
+            return;
+        }
+
+        float spacing = yardManager.mainColumnSpacing;
+        float craneScale= 1f * spacing /32f;
+        // spacing을 크레인 Z축 스케일에 반영 (예시)
+        crane.transform.localScale = new Vector3(craneScale, 1f, craneScale);
+
+
     }
 }

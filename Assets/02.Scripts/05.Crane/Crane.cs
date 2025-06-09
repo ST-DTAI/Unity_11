@@ -41,12 +41,13 @@ public class Crane : MonoBehaviour
         //Debug.Log("가져온 크레인 데이터 개수: " + craneStatusList.Count);
 
         // CrNo가 2로 시작하는 경우 z 방향으로 +20을 더함
-        float offsetZ = dyOffset * 0.001f;
-        float offsetX = dxOffset * 0.001f;
 
-        targetPositionCrane = new Vector3(crStatus.Dx * 0.001f + offsetX, craneRootObject.transform.position.y, craneRootObject.transform.position.z);
-        targetPositionHoist = new Vector3(craneRootObject.transform.position.x, hoistRootObject.transform.position.y, crStatus.Dy * 0.001f + offsetZ);
-        targetPositionLift = new Vector3(craneRootObject.transform.position.x, crStatus.Dz * 0.001f + 1.3f, hoistRootObject.transform.position.z);
+        float offsetZ = dyOffset * Global.UnityCorrectValue;
+        float offsetX = dxOffset * Global.UnityCorrectValue;
+
+        targetPositionCrane = new Vector3(crStatus.Dx * Global.UnityCorrectValue + offsetX, craneRootObject.transform.position.y, craneRootObject.transform.position.z);
+        targetPositionHoist = new Vector3(craneRootObject.transform.position.x, hoistRootObject.transform.position.y, crStatus.Dy * Global.UnityCorrectValue + offsetZ);
+        targetPositionLift = new Vector3(craneRootObject.transform.position.x, crStatus.Dz * Global.UnityCorrectValue + 1.3f, hoistRootObject.transform.position.z);
 
         liftRootObject.transform.rotation = Quaternion.Euler(0, crStatus.SwivAng, 0);
         UpdateCoilObjectStatus(crStatus.Status, crStatus.PdNo, crStatus.SwivAng);
@@ -106,7 +107,7 @@ public class Crane : MonoBehaviour
 
     private void UpdateLiftArmWidth(int armWid)
     {
-        float armWidth = armWid * 0.0001f;
+        float armWidth = armWid * Global.UnityCorrectValue *0.1f; //0.1를 더곱해야됨.
         float halfWidth = armWidth * 0.5f;
 
         liftArm_L.transform.localPosition = new Vector3(-halfWidth, liftArm_L.transform.localPosition.y, liftArm_L.transform.localPosition.z);
