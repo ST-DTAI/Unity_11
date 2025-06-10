@@ -15,10 +15,11 @@
       "hash": "698989e1642d269c3c7a015077ad8d2bae7c739a"
     },
     "com.pimdewitte.unitymainthreaddispatcher": {
-      "version": "file:D:/__TF/UnityMainThreadDispatcher",
+      "version": "https://github.com/PimDeWitte/UnityMainThreadDispatcher.git",
       "depth": 0,
-      "source": "local",
-      "dependencies": {}
+      "source": "git",
+      "dependencies": {},
+      "hash": "7512c2b85ef0cef92090df77ec5fd530bb199852"
     },
     "com.unity.2d.sprite": {
       "version": "1.0.0",
