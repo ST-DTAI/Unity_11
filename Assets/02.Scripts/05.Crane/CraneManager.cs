@@ -1,19 +1,16 @@
 using MySql.Data.MySqlClient;
-using PimDeWitte.UnityMainThreadDispatcher;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using System.Threading;
-using TMPro;
-using UnityEditor;
 using UnityEngine;
-using static UnityEditor.PlayerSettings;
 
 public class CraneManager : MonoBehaviour
 {
-    [SerializeField]
     private List<GameObject> craneObject = new List<GameObject>();
+    List<CrStatus> dbList = new List<CrStatus>();
+    List<CrStatus> localCopyDbList = new List<CrStatus>();
+    object dbListLock = new object();
 
     public GameObject cranePrefab;
 
@@ -28,11 +25,7 @@ public class CraneManager : MonoBehaviour
         InitializeCranePosition();
 
         ThreadStart();
-        //StartCoroutine(UpdateCraneCoroutine());
-
-        //targetPositionCrane = craneRootObject.transform.position;
-        //targetPositionHoist = hoistRootObject.transform.position;
-        //targetPositionLift = liftRootObject.transform.position;
+        StartCoroutine(UpdateCraneCoroutine());
     }
     private void OnDestroy()
     {
@@ -50,8 +43,8 @@ public class CraneManager : MonoBehaviour
     }
     private void InitializeCranePosition()
     {
-        string query = "SELECT a.CrNo, a.DxOffset, a.MinDx, a.MaxDx, a.DyOffset, a.MinDy, a.MaxDy " +
-            "FROM cr_init a INNER JOIN cr_status b ON a.CrNo = b.CrNo ORDER BY CrNo;";
+        string query = "SELECT a.CrNo, a.DxOffset, a.MinDx, a.MaxDx, a.DyOffset, a.MinDy, a.MaxDy" +
+            " FROM cr_init a INNER JOIN cr_status b ON a.CrNo = b.CrNo ORDER BY a.CrNo;";
 
         using (MySqlCommand cmd = new MySqlCommand(query, DatabaseConnection.Instance.Connection))
         {
@@ -81,6 +74,8 @@ public class CraneManager : MonoBehaviour
 
                     crane.transform.SetParent(transform);
                     craneObject.Add(crane);
+
+                    dbList.Add(new CrStatus()); // 초기화용 빈 CrStatus 객체 추가
                 }
 
             }
@@ -145,15 +140,17 @@ public class CraneManager : MonoBehaviour
                                     reader.GetInt32("cycleTime")
                                 );
 
-                                if (UnityMainThreadDispatcher.Instance() != null)
-                                {
-                                    UnityMainThreadDispatcher.Instance().Enqueue(() =>
-                                    {
-                                        craneObject[crIdx].GetComponent<Crane>().crStatus = crStatus;
-                                        craneObject[crIdx].GetComponent<Crane>().FetchCraneData();
-                                        crIdx++;
-                                    });
-                                }
+                                dbList[crIdx++] = crStatus;
+
+                                //if (UnityMainThreadDispatcher.Instance() != null)
+                                //{
+                                //    UnityMainThreadDispatcher.Instance().Enqueue(() =>
+                                //    {
+                                //        craneObject[crIdx].GetComponent<Crane>().crStatus = crStatus;
+                                //        craneObject[crIdx].GetComponent<Crane>().FetchCraneData();
+                                //        crIdx++;
+                                //    });
+                                //}
                             }
                         }
                     }
@@ -164,63 +161,30 @@ public class CraneManager : MonoBehaviour
                 if (isRunning)
                     Debug.LogError("CraneManager_Thread Error: " + ex.Message);
             }
+
+            Thread.Sleep(500);
         }
     }
 
-    //private IEnumerator UpdateCraneCoroutine()
-    //{
-    //    while (true)
-    //    {
-    //        string query = $"SELECT CrNo, `Status`, Locus, GoalDx, GoalDy, GoalDz, Addr, PdNo, " +
-    //                       $"Dx, Dy, Dz, SwivAng, ArmWid, LdWeight, TLSway, TSSway, Temp, ErrCode, Input, Output, " +
-    //                       $"ComChk, CycleTime FROM cr_status ORDER BY CrNo;";
+    private IEnumerator UpdateCraneCoroutine()
+    {
+        while (true)
+        {
+            lock (dbListLock)
+            {
+                localCopyDbList.Clear();
+                localCopyDbList.AddRange(dbList); // dbList의 현재 상태를 복사
+            }
 
-    //        int crIdx = 0;
-    //        if (connection != null)
-    //        {
-    //            using (MySqlCommand cmd = new MySqlCommand(query, connection))
-    //            {
-    //                using (MySqlDataReader reader = cmd.ExecuteReader())
-    //                {
-    //                    while (reader.Read())
-    //                    {
-    //                        CrStatus crStatus = new CrStatus(
-    //                            reader.GetInt32("crNo"),
-    //                            reader.GetString("status"),
-    //                            reader.GetInt32("locus"),
-    //                            reader.GetFloat("goaldx"),
-    //                            reader.GetFloat("goaldy"),
-    //                            reader.GetFloat("goaldz"),
-    //                            reader.GetString("addr"),
-    //                            reader.GetString("pdNo"),
-    //                            reader.GetFloat("dx"),
-    //                            reader.GetFloat("dy"),
-    //                            reader.GetFloat("dz"),
-    //                            reader.GetInt32("swivAng"),
-    //                            reader.GetInt32("armWid"),
-    //                            reader.GetInt32("ldWeight"),
-    //                            reader.GetInt32("tlsway"),
-    //                            reader.GetInt32("tssway"),
-    //                            reader.GetInt32("temp"),
-    //                            reader.GetInt32("errCode"),
-    //                            reader.GetInt32("input"),
-    //                            reader.GetInt32("output"),
-    //                            reader.GetInt32("comChk"),
-    //                            reader.GetInt32("cycleTime")
-    //                        );
+            for (int crIdx = 0; crIdx < craneObject.Count; crIdx++)
+            {
+                craneObject[crIdx].GetComponent<Crane>().crStatus = localCopyDbList[crIdx];
+                craneObject[crIdx].GetComponent<Crane>().FetchCraneData();
+            }
 
-
-    //                        craneObject[crIdx].GetComponent<Crane>().crStatus = crStatus;
-    //                        craneObject[crIdx].GetComponent<Crane>().FetchCraneData();
-    //                        crIdx++;
-    //                    }
-    //                }
-    //            }
-    //        }
-
-    //        yield return new WaitForSeconds(updateInterval); // updateInterval 초마다 데이터 갱신
-    //    }
-    //}
+            yield return new WaitForSeconds(updateInterval); // updateInterval 초마다 데이터 갱신
+        }
+    }
 
     private void ApplyCraneScale(GameObject crane)
     {
@@ -236,7 +200,5 @@ public class CraneManager : MonoBehaviour
         float craneScale= 1f * spacing /32f;
         // spacing을 크레인 Z축 스케일에 반영 (예시)
         crane.transform.localScale = new Vector3(craneScale, 1f, craneScale);
-
-
     }
 }

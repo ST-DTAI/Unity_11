@@ -36,7 +36,7 @@ public class CraneInfoPanelButtonController : MonoBehaviour
 
     private MySqlConnection connection;
 
-    private const string TableName = "clts.cr_command";
+    private const string TableName = "cr_command";
 
 
     // Start is called before the first frame update

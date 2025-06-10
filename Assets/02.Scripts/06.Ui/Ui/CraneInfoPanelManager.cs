@@ -35,7 +35,7 @@ public class CraneInfoPanelManager : MonoBehaviour
             try
             {
                 // 쿼리: Up% 및 Dn% 데이터 가져오기
-                string query = $"SELECT UpAddr, UpDx, UpDy, UpDz, DnAddr, DnDx, DnDy, DnDz FROM clts.cr_view WHERE CrNo = {crNo}";
+                string query = $"SELECT UpAddr, UpDx, UpDy, UpDz, DnAddr, DnDx, DnDy, DnDz FROM cr_view WHERE CrNo = {crNo}";
                 MySqlCommand cmd = new MySqlCommand(query, connection);
                 MySqlDataReader reader = cmd.ExecuteReader();
 
@@ -119,7 +119,7 @@ public class CraneInfoPanelManager : MonoBehaviour
         try
         {
             // 쿼리: WorkPdNo, Width, Weight, Outdia 데이터 가져오기
-            string query = $"SELECT WorkPdNo, Width, Weight, Outdia FROM clts.cr_view WHERE CrNo = {crNo}";
+            string query = $"SELECT WorkPdNo, Width, Weight, Outdia FROM cr_view WHERE CrNo = {crNo}";
             MySqlCommand cmd = new MySqlCommand(query, connection);
             MySqlDataReader reader = cmd.ExecuteReader();
 

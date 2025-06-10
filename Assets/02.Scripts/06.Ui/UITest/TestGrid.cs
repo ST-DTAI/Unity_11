@@ -28,8 +28,8 @@ public class TestGrid : MonoBehaviour
             return;
         }
 
-        string connectionString = string.Format("server=192.168.0.32; database=clts; uid=clts; pwd=clts; charset=utf8;");
-        string query = "SELECT * FROM clts.pd_info;"; // Äõ¸®
+        string connectionString = string.Format("server=192.168.0.4; database=clts_unity; uid=clts; pwd=clts; charset=utf8;");
+        string query = "SELECT * FROM pd_info;"; // Äõ¸®
 
         using (MySqlConnection connection = new MySqlConnection(connectionString))
         {

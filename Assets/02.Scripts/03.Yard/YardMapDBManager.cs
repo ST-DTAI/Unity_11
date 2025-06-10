@@ -17,20 +17,16 @@ public class YardMapDBManager : MonoBehaviour
     public GameObject SkidObject;
     public GameObject CoilObject;
 
+    // hierarchy 정리를 위한 빈 오브젝트
+    GameObject coilObjectList;
+    GameObject skidObjectList;
+
     public Material clickedMaterial;
     public TextMeshProUGUI dbConnectText;
 
-    public GameObject coilObjectList;   
-    public GameObject skidObjectList;   
-
-    [SerializeField]
+    // DB에서 읽은 정보
     private List<YardMap> skidsList = new List<YardMap>();
-    public List<YardMap> SkidsList => skidsList;
-
-    [SerializeField]
     private List<YardMap> coilsList = new List<YardMap>();
-    public List<YardMap> CoilsList => coilsList;
-
 
     private Thread thread_yardmap;
     private volatile bool isRunning = true;
@@ -40,6 +36,8 @@ public class YardMapDBManager : MonoBehaviour
 
         dbConnectText.color = Color.green;
 
+        coilObjectList = new GameObject("CoilObjectList");
+        skidObjectList = new GameObject("SkidObjectList");
         // 🚀 초기 데이터 로딩 + 바로 화면 출력
         //ReadSkidData(forceUpdate: true);
         //FetchSkidData(skidsList);
@@ -79,7 +77,7 @@ public class YardMapDBManager : MonoBehaviour
         {
             try
             {
-                string query = "SELECT SkidNo, Dong, Skid, Sect, DxNo, DyNo, DzNo, Addr, Dx, Dy, Dz, Dir, MaxWid, MaxDia, PdYN, Hold, CrRev, SupRev, OutRev, FwdYN, BwdYN, PdNo, State, Width, Outdia, India, Thick, Weight, Temp, Date, ToNo FROM clts.yard_map_b;";
+                string query = "SELECT SkidNo, Dong, Skid, Sect, DxNo, DyNo, DzNo, Addr, Dx, Dy, Dz, Dir, MaxWid, MaxDia, PdYN, Hold, CrRev, SupRev, OutRev, FwdYN, BwdYN, PdNo, State, Width, Outdia, India, Thick, Weight, Temp, Date, ToNo FROM yard_map_b;";
 
                 List<YardMap> newSkidsList = new List<YardMap>();
                 List<YardMap> newCoilsList = new List<YardMap>();
