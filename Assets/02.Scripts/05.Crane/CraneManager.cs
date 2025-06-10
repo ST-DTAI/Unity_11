@@ -1,45 +1,23 @@
 using MySql.Data.MySqlClient;
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading;
 using UnityEngine;
 
 public class CraneManager : MonoBehaviour
 {
-    private List<GameObject> craneObject = new List<GameObject>();
-    List<CrStatus> dbList = new List<CrStatus>();
-    List<CrStatus> localCopyDbList = new List<CrStatus>();
-    object dbListLock = new object();
+    public GameObject cranePrefab;                                  // 프리팹
+    private List<GameObject> craneObject = new List<GameObject>();  // 프리팹으로 만든 크레인 오브젝트를 저장할 리스트
 
-    public GameObject cranePrefab;
-
-    public float updateInterval = 0.5f; // 데이터 갱신 주기(0.5초)
-
-    private Thread thread_crane;
-    private volatile bool isRunning = true;
+    List<CrStatus> copyCraneStatusList = new List<CrStatus>();      // 복사본 리스트
+    object dbLock = new object();                                   // 동기화를 위한 잠금 객체
+    public float updateInterval = 0.5f; // 코루틴 업데이트 간격
 
     void Start()
     {
         // 초기 크레인 위치 설정
         InitializeCranePosition();
 
-        ThreadStart();
         StartCoroutine(UpdateCraneCoroutine());
-    }
-    private void OnDestroy()
-    {
-        if (isRunning)
-        {
-            isRunning = false;
-
-            if (thread_crane != null)
-            {
-                thread_crane.Join(5000); // 기다렸다가
-                thread_crane = null;
-                Debug.Log("==CraneManager destroyed and thread stopped==");
-            }
-        }
     }
     private void InitializeCranePosition()
     {
@@ -75,110 +53,25 @@ public class CraneManager : MonoBehaviour
                     crane.transform.SetParent(transform);
                     craneObject.Add(crane);
 
-                    dbList.Add(new CrStatus()); // 초기화용 빈 CrStatus 객체 추가
+                    Global.CrStatusList.Add(new CrStatus()); // 초기화용 빈 CrStatus 객체 추가
                 }
 
             }
         }
     }
-    void ThreadStart()
-    {
-        if (thread_crane != null)
-        {
-            isRunning = false;
-            thread_crane.Join(); // 기다렸다가
-            thread_crane = null;
-            return;
-        }
-
-        isRunning = true;
-        thread_crane = new Thread(CraneManager_Thread);
-        thread_crane.IsBackground = true;
-        thread_crane.Start();
-    }
-    private void CraneManager_Thread()
-    {
-        while (true)
-        {
-            try
-            {
-                string query = $"SELECT CrNo, `Status`, Locus, GoalDx, GoalDy, GoalDz, Addr, PdNo, " +
-                           $"Dx, Dy, Dz, SwivAng, ArmWid, LdWeight, TLSway, TSSway, Temp, ErrCode, Input, Output, " +
-                           $"ComChk, CycleTime FROM cr_status ORDER BY CrNo;";
-                int crIdx = 0;
-                using (MySqlConnection connection = new MySqlConnection(DatabaseConnection.Instance.ConnStr))
-                {
-                    connection.Open();
-                    using (MySqlCommand cmd = new MySqlCommand(query, connection))
-                    {
-                        using (MySqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            while (reader.Read() && isRunning)
-                            {
-                                CrStatus crStatus = new CrStatus(
-                                    reader.GetInt32("crNo"),
-                                    reader.GetString("status"),
-                                    reader.GetInt32("locus"),
-                                    reader.GetFloat("goaldx"),
-                                    reader.GetFloat("goaldy"),
-                                    reader.GetFloat("goaldz"),
-                                    reader.GetString("addr"),
-                                    reader.GetString("pdNo"),
-                                    reader.GetFloat("dx"),
-                                    reader.GetFloat("dy"),
-                                    reader.GetFloat("dz"),
-                                    reader.GetInt32("swivAng"),
-                                    reader.GetInt32("armWid"),
-                                    reader.GetInt32("ldWeight"),
-                                    reader.GetInt32("tlsway"),
-                                    reader.GetInt32("tssway"),
-                                    reader.GetInt32("temp"),
-                                    reader.GetInt32("errCode"),
-                                    reader.GetInt32("input"),
-                                    reader.GetInt32("output"),
-                                    reader.GetInt32("comChk"),
-                                    reader.GetInt32("cycleTime")
-                                );
-
-                                dbList[crIdx++] = crStatus;
-
-                                //if (UnityMainThreadDispatcher.Instance() != null)
-                                //{
-                                //    UnityMainThreadDispatcher.Instance().Enqueue(() =>
-                                //    {
-                                //        craneObject[crIdx].GetComponent<Crane>().crStatus = crStatus;
-                                //        craneObject[crIdx].GetComponent<Crane>().FetchCraneData();
-                                //        crIdx++;
-                                //    });
-                                //}
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                if (isRunning)
-                    Debug.LogError("CraneManager_Thread Error: " + ex.Message);
-            }
-
-            Thread.Sleep(500);
-        }
-    }
-
     private IEnumerator UpdateCraneCoroutine()
     {
         while (true)
         {
-            lock (dbListLock)
+            lock (dbLock)
             {
-                localCopyDbList.Clear();
-                localCopyDbList.AddRange(dbList); // dbList의 현재 상태를 복사
+                copyCraneStatusList.Clear();
+                copyCraneStatusList.AddRange(Global.CrStatusList); // dbList의 현재 상태를 복사
             }
 
             for (int crIdx = 0; crIdx < craneObject.Count; crIdx++)
             {
-                craneObject[crIdx].GetComponent<Crane>().crStatus = localCopyDbList[crIdx];
+                craneObject[crIdx].GetComponent<Crane>().crStatus = copyCraneStatusList[crIdx];
                 craneObject[crIdx].GetComponent<Crane>().FetchCraneData();
             }
 

@@ -1,4 +1,6 @@
 
+using System.Collections.Generic;
+
 public static class Global
 {
     public static float UnityCorrectValue = 0.001f;
@@ -8,4 +10,8 @@ public static class Global
     public static string user = "clts";
     public static string password = "clts";
     public static string charset = "utf8";
+
+
+    public static List<CrStatus> CrStatusList = new List<CrStatus>();
+    public static Dictionary<string, int> DoorStateDict = new Dictionary<string, int>();
 }

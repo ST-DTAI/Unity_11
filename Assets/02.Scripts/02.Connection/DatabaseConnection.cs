@@ -1,6 +1,5 @@
-using System;
 using MySql.Data.MySqlClient;
-using TMPro;
+using System;
 using UnityEngine;
 
 public class DatabaseConnection : MonoBehaviour
