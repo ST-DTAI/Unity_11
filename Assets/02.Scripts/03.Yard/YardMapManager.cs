@@ -10,13 +10,15 @@ public class YardMapManager : MonoBehaviour
 
     List<YardMap> copyCoilnSkidList = new List<YardMap>(); // 복사본 리스트
     public float updateInterval = 1.0f; // 코루틴 업데이트 간격
+    private void Awake()
+    {
+        InitializeYardMap();
+    }
     void Start()
     {
-        InitializeCranePosition();
-
         StartCoroutine(UpdateCoilnSkidCoroutine());
     }
-    private void InitializeCranePosition()
+    private void InitializeYardMap()
     {
         const string query = "SELECT SkidNo, Dong, Skid, Sect, DxNo, DyNo, DzNo, Addr, Dx, Dy, Dz, Dir, MaxWid, MaxDia, PdYN, Hold, CrRev, SupRev, OutRev, FwdYN, BwdYN, PdNo, State, Width, Outdia, India, Thick, Weight, Temp, Date, ToNo FROM yard_map ORDER BY Skid, SkidNo;";
 
@@ -66,7 +68,7 @@ public class YardMapManager : MonoBehaviour
                     obj.name = "CoilnSkid_" + newYardMap.Skid + "_" + newYardMap.SkidNo;
                     obj.transform.SetParent(transform); // YardMapManager의 자식으로 설정
 
-                    obj.GetComponent<CoilnSkid>().InitializeYardMap(newYardMap);    // 초기 정보는 바로 대입
+                    obj.GetComponent<CoilnSkid>().InitializeCoilSkid(newYardMap);    // 초기 정보는 바로 대입
                     obj.GetComponent<CoilnSkid>().FetchDraw();
 
                     CoilnSkidObjList.Add(obj);          // 오브젝트 리스트에 추가

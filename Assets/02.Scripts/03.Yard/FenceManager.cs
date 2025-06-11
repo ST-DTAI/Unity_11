@@ -20,11 +20,12 @@ public class FenceManager : MonoBehaviour
 
     Dictionary<string, int> copyDoorStateDict = new Dictionary<string, int>();  // 복사본
     public float updateInterval = 0.5f; // 코루틴 업데이트 간격
-
-    void Start()
+    private void Awake()
     {
         InitializeFenceAndDoor();
-
+    }
+    void Start()
+    {
         StartCoroutine(UpdateSafeDoorStatusCoroutine());
     }
     void OnDestroy()

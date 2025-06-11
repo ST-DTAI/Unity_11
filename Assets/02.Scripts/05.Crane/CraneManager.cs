@@ -10,12 +10,13 @@ public class CraneManager : MonoBehaviour
 
     List<CrStatus> copyCraneStatusList = new List<CrStatus>();      // 복사본 리스트
     public float updateInterval = 0.5f; // 코루틴 업데이트 간격
-
-    void Start()
+    private void Awake()
     {
         // 초기 크레인 위치 설정
         InitializeCranePosition();
-
+    }
+    void Start()
+    {
         StartCoroutine(UpdateCraneCoroutine());
     }
     private void InitializeCranePosition()
