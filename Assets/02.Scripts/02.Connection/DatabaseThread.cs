@@ -13,17 +13,32 @@ public class DatabaseThread : MonoBehaviour
     }
     private void OnDestroy()
     {
-        if (isRunning)
+        isRunning = false;
+
+        if (thread_Database != null)
         {
-            isRunning = false;
-            if (thread_Database != null)
+            try
             {
-                thread_Database.Join(5000); // ±â´Ù·È´Ù°¡
+                if (thread_Database.IsAlive)
+                {
+                    bool finished = thread_Database.Join(5000);
+                    if (!finished)
+                        Debug.LogWarning("Database thread did not terminate in 5 seconds.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError("Exception while stopping thread: " + ex.Message);
+            }
+            finally
+            {
                 thread_Database = null;
-                Debug.Log("==DatabaseThread destroyed and thread stopped==");
             }
         }
+
+        Debug.Log("==DatabaseThread destroyed and thread stopped==");
     }
+
     void ThreadStart()
     {
         if (thread_Database != null)
@@ -41,7 +56,7 @@ public class DatabaseThread : MonoBehaviour
     }
     void Database_Thread()
     {
-        while (true)
+        while (isRunning)
         {
             Thread.Sleep(1000);
 
