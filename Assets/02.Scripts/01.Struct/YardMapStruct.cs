@@ -33,13 +33,13 @@ public struct YardMap
     public int Weight;
     public int Temp;
     public string Date;
-    public string PdNew;
+    public string ToNo;
 
     public YardMap(int skidNo, int dong, string skid, int sect, int dxNo, int dyNo, int dzNo,
                    string addr,  float dx, float dy, float dz, float dir, int maxWid,
                    int maxDia, string pdYN, string hold, int crRev, int supRev, int outRev,
                    string fwdYN, string bwdYN, string pdNo, string state,
-                   int width, int outdia, int india, float thick, int weight, int temp, string date, string pdNew)
+                   int width, int outdia, int india, float thick, int weight, int temp, string date, string toNo)
     {
         this.SkidNo = skidNo;
         this.Dong = dong;
@@ -73,6 +73,6 @@ public struct YardMap
         this.Weight = weight;
         this.Temp = temp;
         this.Date = date;
-        this.PdNew = pdNew;
+        this.ToNo = toNo;
     }
 }
