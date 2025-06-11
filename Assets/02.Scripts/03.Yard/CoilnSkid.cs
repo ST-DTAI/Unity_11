@@ -14,7 +14,7 @@ public class CoilnSkid : MonoBehaviour
     [SerializeField]
     GameObject CoilTextObj;
 
-    public void InitializeYardMap(YardMap info)
+    public void InitializeCoilSkid(YardMap info)
     {
         yardMapInfo = info;
     }

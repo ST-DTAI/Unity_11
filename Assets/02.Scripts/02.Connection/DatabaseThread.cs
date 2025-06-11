@@ -13,17 +13,32 @@ public class DatabaseThread : MonoBehaviour
     }
     private void OnDestroy()
     {
-        if (isRunning)
+        isRunning = false;
+
+        if (thread_Database != null)
         {
-            isRunning = false;
-            if (thread_Database != null)
+            try
             {
-                thread_Database.Join(5000); // ±â´Ù·È´Ù°¡
+                if (thread_Database.IsAlive)
+                {
+                    bool finished = thread_Database.Join(5000);
+                    if (!finished)
+                        Debug.LogWarning("Database thread did not terminate in 5 seconds.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError("Exception while stopping thread: " + ex.Message);
+            }
+            finally
+            {
                 thread_Database = null;
-                Debug.Log("==DatabaseThread destroyed and thread stopped==");
             }
         }
+
+        Debug.Log("==DatabaseThread destroyed and thread stopped==");
     }
+
     void ThreadStart()
     {
         if (thread_Database != null)
@@ -41,8 +56,10 @@ public class DatabaseThread : MonoBehaviour
     }
     void Database_Thread()
     {
-        while (true)
+        while (isRunning)
         {
+            Thread.Sleep(1000);
+
             try
             {
                 using (MySqlConnection connection = new MySqlConnection(DatabaseConnection.Instance.ConnStr))
@@ -61,8 +78,6 @@ public class DatabaseThread : MonoBehaviour
                 Debug.LogError("[Database_Thread Error]: " + ex.Message);
                 //connection.Close();
             }
-
-            Thread.Sleep(1000);
         }
     }
 
@@ -122,6 +137,9 @@ public class DatabaseThread : MonoBehaviour
     }
     void ReadSafeDoor(MySqlConnection conn)
     {
+        if (Global.DoorStateDict.Count == 0)
+            return;
+
         const string query = "SELECT Name, State FROM unity_safedoorstatus;";
 
         try
@@ -148,6 +166,9 @@ public class DatabaseThread : MonoBehaviour
     }
     void ReadYardMap(MySqlConnection conn)
     {
+        if (Global.YardMapList.Count == 0)
+            return;
+
         const string query = "SELECT SkidNo, Dong, Skid, Sect, DxNo, DyNo, DzNo, Addr, Dx, Dy, Dz, Dir, MaxWid, MaxDia, PdYN, Hold, CrRev, SupRev, OutRev, FwdYN, BwdYN, PdNo, State, Width, Outdia, India, Thick, Weight, Temp, Date, ToNo FROM yard_map ORDER BY Skid, SkidNo;";
         int idx = 0;
 
@@ -196,7 +217,12 @@ public class DatabaseThread : MonoBehaviour
                         );
 
                         lock (Global.dbLocks[(int)Global.DbLockType.YARDMAP])
-                            Global.YardMapList[idx++] = newYardMap;
+                        {
+                            if (idx < Global.YardMapList.Count)
+                                Global.YardMapList[idx++] = newYardMap;
+                            else
+                                Debug.LogError($"[*************] idx: {idx}, count: {Global.YardMapList.Count}");
+                        }
                     }
                 }
             }

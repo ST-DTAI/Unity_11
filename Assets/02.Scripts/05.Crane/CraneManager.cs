@@ -10,12 +10,13 @@ public class CraneManager : MonoBehaviour
 
     List<CrStatus> copyCraneStatusList = new List<CrStatus>();      // 복사본 리스트
     public float updateInterval = 0.5f; // 코루틴 업데이트 간격
-
-    void Start()
+    private void Awake()
     {
         // 초기 크레인 위치 설정
         InitializeCranePosition();
-
+    }
+    void Start()
+    {
         StartCoroutine(UpdateCraneCoroutine());
     }
     private void InitializeCranePosition()
@@ -38,7 +39,6 @@ public class CraneManager : MonoBehaviour
                     int maxDy = reader.GetInt32("MaxDy");
 
                     GameObject crane = Instantiate(cranePrefab);
-                    ApplyCraneScale(crane);
 
                     crane.GetComponent<Crane>().crNo = crNo;
                     crane.GetComponent<Crane>().dxOffset = dxOffset ;
@@ -47,8 +47,9 @@ public class CraneManager : MonoBehaviour
                     crane.GetComponent<Crane>().dyOffset = dyOffset ;
                     crane.GetComponent<Crane>().minDy = minDy ;
                     crane.GetComponent<Crane>().maxDy = maxDy;
-                    crane.name = "Crane" + crNo;
+                    ApplyCraneScale(crane);
 
+                    crane.name = "Crane" + crNo;
                     crane.transform.SetParent(transform);
                     craneObject.Add(crane);
 
@@ -80,15 +81,20 @@ public class CraneManager : MonoBehaviour
 
     private void ApplyCraneScale(GameObject crane)
     {
-        // YardSetUpManager에서 mainColumnSpacing 가져오기
         YardSetUpManager yardManager = FindObjectOfType<YardSetUpManager>();
         if (yardManager == null)
         {
             Debug.LogWarning("YardSetUpManager가 씬에 존재하지 않습니다.");
             return;
         }
+        if (Global.DongSpacing.Count == 0)
+        {
+            Debug.LogWarning("Global.DongSpacing이 초기화되지 않았습니다.");
+            return;
+        }
 
-        float spacing = yardManager.mainColumnSpacing;
+        int dong = crane.GetComponent<Crane>().crNo / 10;
+        float spacing = Global.DongSpacing[dong - 1];
         float craneScale= 1f * spacing /32f;
         // spacing을 크레인 Z축 스케일에 반영 (예시)
         crane.transform.localScale = new Vector3(craneScale, 1f, craneScale);

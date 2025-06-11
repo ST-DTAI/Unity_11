@@ -27,4 +27,5 @@ public static class Global
     public static List<CrStatus> CrStatusList = new List<CrStatus>();
     public static Dictionary<string, int> DoorStateDict = new Dictionary<string, int>();
     public static List<YardMap> YardMapList = new List<YardMap>();
+    public static List<float> DongSpacing = new List<float>();
 }
