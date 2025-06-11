@@ -54,7 +54,7 @@ public class ButtonTaskController : MonoBehaviour
 
     void InitializeModeFromDB()
     {
-        string query = $"SELECT Status FROM clts.cr_status WHERE CrNo = {crNo}";
+        string query = $"SELECT Status FROM cr_status WHERE CrNo = {crNo}";
         MySqlCommand cmd = new MySqlCommand(query, connection);
         string status = cmd.ExecuteScalar()?.ToString();
 
@@ -73,7 +73,7 @@ public class ButtonTaskController : MonoBehaviour
 
     void InitializeEmergencyStateFromDB()
     {
-        string query = $"SELECT EmgStop FROM clts.cr_command WHERE CrNo = {crNo}";
+        string query = $"SELECT EmgStop FROM cr_command WHERE CrNo = {crNo}";
         MySqlCommand cmd = new MySqlCommand(query, connection);
         string result = cmd.ExecuteScalar()?.ToString();
 
@@ -177,7 +177,7 @@ public class ButtonTaskController : MonoBehaviour
 
     void UpdateValueInDB(string table, string column, int value)
     {
-        string query = $"UPDATE clts.{table} SET {column} = {value} WHERE CrNo = {crNo}";
+        string query = $"UPDATE {table} SET {column} = {value} WHERE CrNo = {crNo}";
         try
         {
             using (MySqlCommand cmd = new MySqlCommand(query, connection))

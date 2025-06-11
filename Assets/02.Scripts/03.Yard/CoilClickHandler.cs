@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using static YardMapDBManager;
+using static YardMapManager;
 
 
 
@@ -12,7 +12,7 @@ public class CoilClickHandler : MonoBehaviour
     public Material clickedMaterial; // 클릭 시 적용할 새로운 Material
     public Material originalMaterial; // 원래 Material
 
-    private YardMapDBManager YardMapDBManager;
+    private YardMapManager YardMapManager;
     private static CoilClickHandler lastClickedHandler;
     private Renderer coilRenderer;
 

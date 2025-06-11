@@ -1,201 +1,122 @@
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json.Linq;
-using PimDeWitte.UnityMainThreadDispatcher;
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
-using System.IO;
 using System.Linq;
-using System.Net.Sockets;
-using System.Threading;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 
 public class FenceManager : MonoBehaviour
 {
+    readonly int fenceGap = 2;          // 펜스 너비(=간격)
     public GameObject fencePrefab;
     public GameObject doorPrefab;
-    readonly int fenceGap = 2;
-
     List<GameObject> safeDoorObject = new List<GameObject>();
+
     List<string> doorNames = new List<string>();
     List<int> doorIndex = new List<int>();
 
-    private Thread thread_safedoor;
-    private volatile bool isRunning = true;
+    Dictionary<string, int> copyDoorStateDict = new Dictionary<string, int>();  // 복사본
+    public float updateInterval = 0.5f; // 코루틴 업데이트 간격
 
     void Start()
     {
-        List<Point> fencePoints = new List<Point>();
-        List<Point> doorPoints = new List<Point>();
+        InitializeFenceAndDoor();
 
-        const string query = "SELECT TypeNo, Name, Pos1, Pos2 FROM unity_draw WHERE TypeNo LIKE 'Safe%';";
-        using (MySqlConnection connection = new MySqlConnection(DatabaseConnection.Instance.ConnStr))
-        {
-            connection.Open();
-            using (MySqlCommand cmd = new MySqlCommand(query, connection))
-            {
-                using (MySqlDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        doorNames.Clear();
-                        fencePoints.Clear();
-                        doorPoints.Clear();
-
-                        string typeNo = reader.GetString("TypeNo");
-
-                        // Name 파싱
-                        string nameJson = reader.IsDBNull("Name") ? null : reader.GetString("Name");
-                        if (!string.IsNullOrWhiteSpace(nameJson))
-                        {
-                            var nameArray = JArray.Parse(nameJson);
-                            foreach (var name in nameArray)
-                            {
-                                doorNames.Add(name.Value<string>());
-                            }
-                        }
-                        else
-                        {
-                            Debug.Log($"[{typeNo}]: 안전문 이름이 없는 구역입니다.");
-                        }
-                        
-
-                        // Pos1 파싱
-                        string pos1Json = reader.IsDBNull("Pos1") ? null : reader.GetString("Pos1");
-                        if (!string.IsNullOrWhiteSpace(pos1Json))
-                        {
-                            // Pos1이 비어있지 않으면 파싱
-                            var pos1Array = JArray.Parse(pos1Json);
-                            foreach (var point in pos1Array)
-                            {
-                                int x = point[0].Value<int>();
-                                int y = point[1].Value<int>();
-                                fencePoints.Add(new Point(x, y));
-                            }
-                        }
-                        else
-                        {
-                            Debug.LogError($"[{typeNo}]: 펜스 포인트가 없습니다.");
-                            continue;
-                        }
-
-                        // Pos2 파싱
-                        string pos2Json = reader.IsDBNull("Pos2") ? null : reader.GetString("Pos2");
-                        if (!string.IsNullOrWhiteSpace(pos2Json))
-                        {
-                            var pos2Array = JArray.Parse(pos2Json);
-                            foreach (var point in pos2Array)
-                            {
-                                int x = point[0].Value<int>();
-                                int y = point[1].Value<int>();
-                                doorPoints.Add(new Point(x, y));
-                            }
-                        }
-                        else
-                        {
-                            Debug.Log($"[{typeNo}]: 안전문 포인트가 없는 구역입니다.");
-                        }
-
-                        if (doorNames.Count == doorPoints.Count)
-                        {
-                            DrawFence(fencePoints, doorPoints);
-                        }
-                        else
-                        {
-                            Debug.LogError($"[{typeNo}]: DB의 DoorNames 길이랑 DoorPoints 길이가 다릅니다.");
-                        }
-                    }
-                }
-            }
-        }
-        ThreadStart();
-        //StartCoroutine(UpdateSafeDoorStatusCoroutine());
+        StartCoroutine(UpdateSafeDoorStatusCoroutine());
     }
     void OnDestroy()
     {
-        isRunning = false;
-        if (thread_safedoor != null)
-        {
-            thread_safedoor.Join(5000); // 기다렸다가
-            thread_safedoor = null;
-            Debug.Log("==FenceManager destroyed and thread stopped==");
-        }
-        
         foreach (GameObject door in safeDoorObject)
         {
             Destroy(door);
         }
         safeDoorObject.Clear();
     }
-    void ThreadStart()
+    void InitializeFenceAndDoor()
     {
-        if (thread_safedoor != null)
-        {
-            isRunning = false;
-            thread_safedoor.Join(); // 기다렸다가
-            thread_safedoor = null;
-            return;
-        }
+        List<Point> fencePoints = new List<Point>();
+        List<Point> doorPoints = new List<Point>();
 
-        isRunning = true;
-        thread_safedoor = new Thread(SafeDoor_Thread);
-        thread_safedoor.IsBackground = true;
-        thread_safedoor.Start();
-    }
-
-    private void SafeDoor_Thread()
-    {
-        while (isRunning)
+        const string query = "SELECT TypeNo, Name, Pos1, Pos2 FROM unity_draw WHERE TypeNo LIKE 'Safe%';";
+        using (MySqlCommand cmd = new MySqlCommand(query, DatabaseConnection.Instance.Connection))
         {
-            try
+            using (MySqlDataReader reader = cmd.ExecuteReader())
             {
-                const string query = "SELECT Name, State FROM unity_safedoorstatus;";
-                using (MySqlConnection connection = new MySqlConnection(DatabaseConnection.Instance.ConnStr))
+                while (reader.Read())
                 {
-                    connection.Open();
-                    using (MySqlCommand cmd = new MySqlCommand(query, connection))
-                    {
-                        using (MySqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            while (reader.Read() && isRunning)
-                            {
-                                string name = reader.GetString("Name");
-                                int state = reader.GetInt32("State");
+                    doorNames.Clear();
+                    fencePoints.Clear();
+                    doorPoints.Clear();
 
-                                // 메인 스레드에서 SafeDoor 업데이트
-                                if (UnityMainThreadDispatcher.Instance() != null)
-                                {
-                                    UnityMainThreadDispatcher.Instance().Enqueue(() =>
-                                    {
-                                        foreach (GameObject doorObject in safeDoorObject)
-                                        {
-                                            if (doorObject.GetComponent<SafeDoor>().NameKey == name)
-                                            {
-                                                doorObject.GetComponent<SafeDoor>().SetState(state);
-                                                break;
-                                            }
-                                        }
-                                    });
-                                }
-                            }
+                    string typeNo = reader.GetString("TypeNo");
+
+                    // Name 파싱
+                    string nameJson = reader.IsDBNull("Name") ? null : reader.GetString("Name");
+                    if (!string.IsNullOrWhiteSpace(nameJson))
+                    {
+                        var nameArray = JArray.Parse(nameJson);
+                        foreach (var name in nameArray)
+                        {
+                            doorNames.Add(name.Value<string>());
                         }
+                    }
+                    else
+                    {
+                        Debug.Log($"[{typeNo}]: 안전문 이름이 없는 구역입니다.");
+                    }
+
+
+                    // Pos1 파싱
+                    string pos1Json = reader.IsDBNull("Pos1") ? null : reader.GetString("Pos1");
+                    if (!string.IsNullOrWhiteSpace(pos1Json))
+                    {
+                        // Pos1이 비어있지 않으면 파싱
+                        var pos1Array = JArray.Parse(pos1Json);
+                        foreach (var point in pos1Array)
+                        {
+                            int x = point[0].Value<int>();
+                            int y = point[1].Value<int>();
+                            fencePoints.Add(new Point(x, y));
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogError($"[{typeNo}]: 펜스 포인트가 없습니다.");
+                        continue;
+                    }
+
+                    // Pos2 파싱
+                    string pos2Json = reader.IsDBNull("Pos2") ? null : reader.GetString("Pos2");
+                    if (!string.IsNullOrWhiteSpace(pos2Json))
+                    {
+                        var pos2Array = JArray.Parse(pos2Json);
+                        foreach (var point in pos2Array)
+                        {
+                            int x = point[0].Value<int>();
+                            int y = point[1].Value<int>();
+                            doorPoints.Add(new Point(x, y));
+                        }
+                    }
+                    else
+                    {
+                        Debug.Log($"[{typeNo}]: 안전문 포인트가 없는 구역입니다.");
+                    }
+
+                    if (doorNames.Count == doorPoints.Count)
+                    {
+                        DrawFence(fencePoints, doorPoints);
+                    }
+                    else
+                    {
+                        Debug.LogError($"[{typeNo}]: DB의 DoorNames 길이랑 DoorPoints 길이가 다릅니다.");
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                if (isRunning)
-                    Debug.LogError("SafeDoor_Thread error: " + ex.Message);
-            }
-
-            Thread.Sleep(1000);
         }
     }
-
     void SkidPointsToFencePoints(List<Point> points)
     {
         int pointCount = points.Count;
@@ -376,40 +297,32 @@ public class FenceManager : MonoBehaviour
         }
         return false;
     }
-    //IEnumerator UpdateSafeDoorStatusCoroutine()
-    //{
-    //    while (true)
-    //    {
-    //        const string query = "SELECT Name, State FROM unity_safedoorstatus;";
-    //        if (connection != null)
-    //        {
-    //            using (MySqlCommand cmd = new MySqlCommand(query, connection))
-    //            {
-    //                using (MySqlDataReader reader = cmd.ExecuteReader())
-    //                {
-    //                    while (reader.Read())
-    //                    {
-    //                        string name = reader.GetString("Name");
-    //                        int state = reader.GetInt32("State");
+    private IEnumerator UpdateSafeDoorStatusCoroutine()
+    {
+        while (true)
+        {
+            lock (Global.dbLocks[(int)Global.DbLockType.DOORSTATE])
+            {
+                copyDoorStateDict.Clear();
+                copyDoorStateDict = Global.DoorStateDict.ToDictionary(entry => entry.Key, entry => entry.Value);
+            }
 
-    //                        UnityMainThreadDispatcher.Instance().Enqueue(() =>
-    //                        {
-    //                            //Debug.Log($"SafeDoor {name} state: {state}");
-    //                            foreach (GameObject doorObject in safeDoorObject)
-    //                            {
-    //                                if (doorObject.GetComponent<SafeDoor>().NameKey == name)
-    //                                {
-    //                                    doorObject.GetComponent<SafeDoor>().SetState(state);
-    //                                    break;
-    //                                }
-    //                            }
-    //                        });
-    //                    }
-    //                }
-    //            }
-    //        }
+            foreach (var entry in copyDoorStateDict)
+            {
+                string name = entry.Key;
+                int state = entry.Value;
 
-    //        yield return new WaitForSeconds(1.0f);
-    //    }
-    //}
+                foreach (GameObject doorObject in safeDoorObject)
+                {
+                    if (doorObject.GetComponent<SafeDoor>().NameKey == name)
+                    {
+                        doorObject.GetComponent<SafeDoor>().SetState(state);
+                        break;
+                    }
+                }
+            }
+
+            yield return new WaitForSeconds(updateInterval);
+        }
+    }
 }

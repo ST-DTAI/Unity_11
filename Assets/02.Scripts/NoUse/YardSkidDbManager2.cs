@@ -77,7 +77,7 @@ public class YardSkidDbManager2 : MonoBehaviour
        "COALESCE(pi.Weight, 0) AS Weight,                " +
        "COALESCE(pi.Temp, 0) AS Temp,                    " +
        "COALESCE(pi.Date, '1970-01-01') AS Date,         " +
-       "COALESCE(pi.ToNo, 0) AS ToNo FROM clts.yard_map ym LEFT JOIN clts.pd_info pi ON ym.PdNo = pi.PdNo;" ;
+       "COALESCE(pi.ToNo, 0) AS ToNo FROM yard_map ym LEFT JOIN pd_info pi ON ym.PdNo = pi.PdNo;" ;
         skidsList.Clear();
         coilsList.Clear();
         bool isPdYNChanged = initialLoad; // PdYN 변경 여부 확인 변수

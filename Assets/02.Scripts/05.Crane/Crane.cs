@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 
@@ -38,23 +39,33 @@ public class Crane : MonoBehaviour
 
     public void FetchCraneData()
     {
-        //Debug.Log("가져온 크레인 데이터 개수: " + craneStatusList.Count);
-
-        // CrNo가 2로 시작하는 경우 z 방향으로 +20을 더함
-
         float offsetZ = dyOffset * Global.UnityCorrectValue;
         float offsetX = dxOffset * Global.UnityCorrectValue;
 
-        targetPositionCrane = new Vector3(crStatus.Dx * Global.UnityCorrectValue + offsetX, craneRootObject.transform.position.y, craneRootObject.transform.position.z);
-        targetPositionHoist = new Vector3(craneRootObject.transform.position.x, hoistRootObject.transform.position.y, crStatus.Dy * Global.UnityCorrectValue + offsetZ);
-        targetPositionLift = new Vector3(craneRootObject.transform.position.x, crStatus.Dz * Global.UnityCorrectValue + 1.3f, hoistRootObject.transform.position.z);
+        float unityX = crStatus.Dx * Global.UnityCorrectValue + offsetX;
+        float unityY = crStatus.Dz * Global.UnityCorrectValue + 1.3f;
+        float unityZ = crStatus.Dy * Global.UnityCorrectValue + offsetZ;
+
+        targetPositionCrane = new Vector3(
+            unityX,
+            craneRootObject.transform.position.y,
+            craneRootObject.transform.position.z
+        );
+        targetPositionHoist = new Vector3(
+            unityX,
+            hoistRootObject.transform.position.y,
+            unityZ
+        );
+        targetPositionLift = new Vector3(
+            unityX,
+            unityY,
+            unityZ
+        );
 
         liftRootObject.transform.rotation = Quaternion.Euler(0, crStatus.SwivAng, 0);
+
         UpdateCoilObjectStatus(crStatus.Status, crStatus.PdNo, crStatus.SwivAng);
-
         UpdateLiftArmWidth(crStatus.ArmWid);
-        //Debug.Log($"Updated Crane{crStatus.CrNo} position to x: {crStatus.Dx}, y: {crStatus.Dy}, z: {crStatus.Dz}, angle: {crStatus.SwivAng}");
-
     }
 
     private void UpdateCoilObjectStatus(string status, string pdNo, int swivAng)
@@ -102,7 +113,6 @@ public class Crane : MonoBehaviour
         {
             Debug.LogWarning("TextMeshPro component not found in Coil Object.");
         }
-        //Debug.Log("Coil Object Attached to " + newParentTransform.name);
     }
 
     private void UpdateLiftArmWidth(int armWid)
@@ -112,8 +122,6 @@ public class Crane : MonoBehaviour
 
         liftArm_L.transform.localPosition = new Vector3(-halfWidth, liftArm_L.transform.localPosition.y, liftArm_L.transform.localPosition.z);
         liftArm_R.transform.localPosition = new Vector3(halfWidth, liftArm_R.transform.localPosition.y, liftArm_R.transform.localPosition.z);
-
-        //Debug.Log($"Lift Arms updated: L({-halfWidth}), R({halfWidth})");
     }
 
 
@@ -122,15 +130,20 @@ public class Crane : MonoBehaviour
         // MoveTowards를 사용하여 오브젝트를 목표 위치로 부드럽게 이동
         if (isFirstDone)
         {
-            hoistRootObject.transform.position = Vector3.MoveTowards(hoistRootObject.transform.position, targetPositionHoist, Time.deltaTime * 0.32f);
-            craneRootObject.transform.position = Vector3.MoveTowards(craneRootObject.transform.position, targetPositionCrane, Time.deltaTime * 1.0f);
-            liftRootObject.transform.position = Vector3.MoveTowards(liftRootObject.transform.position, targetPositionLift, Time.deltaTime * 0.1f);
+            float newX = Mathf.MoveTowards(liftRootObject.transform.position.x, targetPositionLift.x, Time.deltaTime * moveSpeed);
+            float newY = Mathf.MoveTowards(liftRootObject.transform.position.y, targetPositionLift.y, Time.deltaTime * moveSpeed);
+            float newZ = Mathf.MoveTowards(liftRootObject.transform.position.z, targetPositionLift.z, Time.deltaTime * moveSpeed);
+
+            craneRootObject.transform.position = new Vector3(newX, targetPositionCrane.y, targetPositionCrane.z);
+            hoistRootObject.transform.position = new Vector3(newX, targetPositionHoist.y, newZ);
+            liftRootObject.transform.position = new Vector3(newX, newY, newZ);
         }
-        else
+        else if (targetPositionCrane.x != 0)
         {
-            hoistRootObject.transform.position = targetPositionHoist;
             craneRootObject.transform.position = targetPositionCrane;
+            hoistRootObject.transform.position = targetPositionHoist;
             liftRootObject.transform.position = targetPositionLift;
+            isFirstDone = true;
         }
 
     }

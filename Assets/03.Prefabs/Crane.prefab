@@ -366,10 +366,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4031691010605046600, guid: 9554173d734c23046a9797fd8a42cfd6,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 5710180421358959348}
-    - targetCorrespondingSourceObject: {fileID: 4031691010605046600, guid: 9554173d734c23046a9797fd8a42cfd6,
-        type: 3}
-      insertIndex: -1
       addedObject: {fileID: 2801385247255644097}
     - targetCorrespondingSourceObject: {fileID: 4031691010605046600, guid: 9554173d734c23046a9797fd8a42cfd6,
         type: 3}
@@ -435,21 +431,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 8, y: 1, z: 30}
   m_Center: {x: 0, y: 16, z: 15}
---- !u!114 &5710180421358959348
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1318167177533923480}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 832b5c7ba6eab0f45b0b2b02d0ddd2ea, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  craneObject: []
-  cranePrefab: {fileID: 0}
-  updateInterval: 0.5
 --- !u!114 &2801385247255644097
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -486,7 +467,7 @@ MonoBehaviour:
   craneRootObject: {fileID: 1318167177533923480}
   hoistRootObject: {fileID: 8301590347268019609}
   liftRootObject: {fileID: 1423907611502950556}
-  coilObject: {fileID: 7792943061729523452, guid: 8224dcca82be3864ab5df787d7bb246e,
+  coilObject: {fileID: 8930758378475141547, guid: 70d7da59a1a88de48bf2d06eebadef0f,
     type: 3}
   liftArm_L: {fileID: 3235380622992928924}
   liftArm_R: {fileID: 2723065399451335663}

@@ -23,7 +23,7 @@ public class MainCraneStatusManager : MonoBehaviour
         try
         {
             // 쿼리: CrPdNo, UpAddr, DnAddr, Status 데이터 가져오기
-            string query = $"SELECT PdNo, UpAddr,DnAddr FROM clts.work_order";
+            string query = $"SELECT PdNo, UpAddr,DnAddr FROM work_order";
             MySqlCommand cmd = new MySqlCommand(query, connection);
             MySqlDataReader reader = cmd.ExecuteReader();
 

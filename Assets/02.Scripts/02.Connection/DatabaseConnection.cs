@@ -1,20 +1,12 @@
-using System;
 using MySql.Data.MySqlClient;
-using TMPro;
+using System;
 using UnityEngine;
 
 public class DatabaseConnection : MonoBehaviour
 {
     public static DatabaseConnection Instance { get; private set; }
     private MySqlConnection connection;
-    public string ConnStr { get => $"server={host}; database={database}; uid={user}; pwd={password}; charset={charset};"; }
-
-    [Header("DB Config")]
-    public string host = "192.168.0.31";
-    public string database = "clts";
-    public string user = "clts";
-    public string password = "clts";
-    public string charset = "utf8";
+    public string ConnStr { get => $"server={Global.host}; database={Global.database}; uid={Global.user}; pwd={Global.password}; charset={Global.charset}; pooling=true;"; }
 
     public MySqlConnection Connection => connection;
 
@@ -36,8 +28,7 @@ public class DatabaseConnection : MonoBehaviour
     {
         try
         {
-            string connStr = $"server={host}; database={database}; uid={user}; pwd={password}; charset={charset};";
-            connection = new MySqlConnection(connStr);
+            connection = new MySqlConnection(ConnStr);
             connection.Open();
             Debug.Log("MySQL Connection Opened");
         }
