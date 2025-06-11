@@ -6,146 +6,120 @@ using UnityEngine;
 
 public class YardSetUpManager : MonoBehaviour
 {
-
-    private MySqlConnection connection;
     List<YardSetUp> yardSetUp = new List<YardSetUp>();
 
 
     public GameObject railPrefab;
-    public float railSpacing = 10f;
-
-
     public GameObject floorPrefab;
-
-    [HideInInspector]
-    public float mainColumnSpacing =42f; //dymax를 받아오자
-    private float railERailSSpacing;
-
-    private void OnValidate()
+    public GameObject stopperPrefab;
+    private void Awake()
     {
-        railERailSSpacing = mainColumnSpacing - 2f;
+        ReadDongInit();
     }
-
     void Start()
     {
-        connection = DatabaseConnection.Instance.Connection;
-        ReadDongInit();
-
         PlaceRailPrefabs();
         PlaceFloorPrefab();
     }
 
     private void ReadDongInit()
     {
-        string query = "SELECT Dong, DxOffset, DyOffset, DxMax, DyMax FROM unity_dong_init ORDER BY Dong;";
+        const string query = "SELECT Dong, DxOffset, DyOffset, DxMax, DyMax, Height, DxSpacing FROM unity_dong_init ORDER BY Dong;";
 
-
-        if (connection != null)
+        try
         {
-            try
+            using (MySqlCommand cmd = new MySqlCommand(query, DatabaseConnection.Instance.Connection))
             {
-                using (MySqlCommand cmd = new MySqlCommand(query, connection))
+                using (MySqlDataReader reader = cmd.ExecuteReader())
                 {
-                    using (MySqlDataReader reader = cmd.ExecuteReader())
+                    while (reader.Read())
                     {
-                        while (reader.Read())
-                        {
-                            //int Dong = reader.GetInt32("Dong");
-                            //int DxOffset = reader.GetInt32("DxOffset");
-                            //int DxMax = reader.GetInt32("DxMax");
-                            //int DyOffset = reader.GetInt32("DyOffset");
-                            //int DyMax = reader.GetInt32("DyMax");
+                        YardSetUp yard = new YardSetUp(
+                            reader.GetInt32("Dong"),
+                            reader.GetInt32("DxOffset"),
+                            reader.GetInt32("DxMax"),
+                            reader.GetInt32("DyOffset"),
+                            reader.GetInt32("DyMax"),
+                            reader.GetInt32("Height"),
+                            reader.GetInt32("DxSpacing")
+                        );
+                        yardSetUp.Add(yard);
 
-
-
-                            YardSetUp tt = new YardSetUp(
-                                reader.GetInt32("Dong"),
-                                reader.GetInt32("DxOffset"),
-                                reader.GetInt32("DxMax"),
-                                reader.GetInt32("DyOffset"),
-                                reader.GetInt32("DyMax")
-                            );
-                            yardSetUp.Add(tt);
-                        }
+                        Global.DongSpacing.Add(yard.DyMax * Global.UnityCorrectValue);
                     }
                 }
             }
-            catch (MySqlException ex)
-            {
-                Debug.LogError("MySQL query error: " + ex.Message);
-            }
         }
-        else
+        catch (MySqlException ex)
         {
-            Debug.LogError("Database connection is null.");
+            Debug.LogError("ReadDongInit: " + ex.Message);
         }
     }
 
 
     void PlaceRailPrefabs()
     {
-        float tmpCount = yardSetUp[0].DxMax * Global.UnityCorrectValue / railSpacing;
-        int railCount = (int)tmpCount;
-        if (tmpCount % 1 != 0)
+        float dongSpacing = 0;
+        for (int dong = 0; dong < yardSetUp.Count; dong++)
         {
-            railCount += 1;
-        }
-        for (int i = 0; i < railCount; i++)
-        {
-            Vector3 position = new Vector3(i * railSpacing, 0, 0);
-            GameObject newRail = Instantiate(railPrefab, position, Quaternion.identity);
-            newRail.transform.SetParent(transform, false);
+            float railCount = yardSetUp[dong].DxMax / yardSetUp[dong].DxSpacing + 1;
+            float railSpacing = yardSetUp[dong].DxSpacing * Global.UnityCorrectValue;
+            float height = yardSetUp[dong].Height * Global.UnityCorrectValue;
+            
+            if (dong > 0)
+            {
+                dongSpacing += Global.DongSpacing[dong - 1]; // 이전 동의 간격을 누적
+            }
 
-            AdjustRailRootObjects(newRail);
+            for (int i = 0; i < railCount; i++)
+            {
+                Vector3 position = new Vector3(i * railSpacing, 0, dongSpacing);
+                GameObject newRail = Instantiate(railPrefab, position, Quaternion.identity);
+                newRail.transform.SetParent(transform, false);
+                newRail.name = "Rail_" + dong;
+
+
+                Transform rail = newRail.transform.Find("Rail");
+                Transform railRev = newRail.transform.Find("RailRev");
+                if (rail != null && railRev != null)
+                {
+                    railRev.localPosition = rail.localPosition + Vector3.forward * Global.DongSpacing[dong];
+                    rail.GetComponent<RailSetting>().SetRailTransform(height, railSpacing);
+                    railRev.GetComponent<RailSetting>().SetRailTransform(height, railSpacing);
+
+                    if (i != 0 && i != railCount -1)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        float dx = -railSpacing * 0.5f;
+                        int rotY = 0;
+                        if (i != 0)
+                        {
+                            dx = railSpacing * 0.5f;
+                            rotY = 180;
+                        }
+                        Quaternion rotation = Quaternion.Euler(0, rotY, 0);
+
+                        Vector3 stopperPosition = new Vector3(rail.localPosition.x + dx, height, rail.localPosition.z + 0.7f);
+                        GameObject stopper = Instantiate(stopperPrefab, stopperPosition, rotation);
+                        stopper.transform.SetParent(newRail.transform, false);
+                        stopper.name = "Stopper";
+
+                        Vector3 stopperRevPosition = new Vector3(railRev.localPosition.x + dx, height, railRev.localPosition.z - 0.7f);
+                        GameObject stopperRev = Instantiate(stopperPrefab, stopperRevPosition, rotation);
+                        stopperRev.transform.SetParent(newRail.transform, false);
+                        stopperRev.name = "StopperRev";
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning("MainColumn 또는 MainColumnE를 찾을 수 없습니다.");
+                }
+            }
         }
     }
-
-
-    void AdjustRailRootObjects(GameObject railRootInstance)
-    {
-        if (railRootInstance == null)
-        {
-            Debug.LogWarning("railRootInstance가 null입니다.");
-            return;
-        }
-
-
-        Transform mainColumn = railRootInstance.transform.Find("MainColumn");
-        Transform mainColumnE = railRootInstance.transform.Find("MainColumnE");
-
-        if (mainColumn != null && mainColumnE != null)
-        {
-            // MainColumnE를 mainColumn 기준으로 이동
-            mainColumnE.localPosition = mainColumn.localPosition + Vector3.forward * mainColumnSpacing;
-        }
-        else
-        {
-            Debug.LogWarning("MainColumn 또는 MainColumnE를 찾을 수 없습니다.");
-        }
-
-
-        Transform railRoot1 = railRootInstance.transform.Find("RailRoot_1");
-        if (railRoot1 != null)
-        {
-            Transform railE = railRoot1.transform.Find("RailE");
-            Transform railS = railRoot1.transform.Find("RailS");
-
-            if (railE != null && railS != null)
-            {
-                // RailS를 railE 기준으로 이동
-                railE.localPosition = railS.localPosition + Vector3.forward * railERailSSpacing;
-            }
-            else
-            {
-                Debug.LogWarning("RailE 또는 RailS를 찾을 수 없습니다.");
-            }
-        }
-        else
-        {
-            Debug.LogWarning("RailRoot_1을 찾을 수 없습니다.");
-        }
-    }
-
     void PlaceFloorPrefab()
     {
         float cumulativeZ = 0f;
@@ -156,16 +130,19 @@ public class YardSetUpManager : MonoBehaviour
             // FloorPrefab 생성
             GameObject floor = Instantiate(floorPrefab, Vector3.zero, Quaternion.identity);
 
+            float margin = 0f;
+
             // Floor Scale 설정
             float floorDx = dongData.DxMax * Global.UnityCorrectValue * 0.1f;
             float floorDy = dongData.DyMax * Global.UnityCorrectValue * 0.1f;
-            floor.transform.localScale = new Vector3(floorDx, 1f, floorDy);
+            floor.transform.localScale = new Vector3(floorDx + margin * 2, 1f, floorDy + margin * 2);
 
             // Floor Position 설정
-            //float floorPosX = i * (floorDx * 10f + 10f); // dong index * Floor 간격(적당히 띄워줌)
-            //float floorPosZ = floorDy / 2f * 10f - 5f;
-            float floorPosX = floorDx * 10f / 2f -5f;  // X축 고정
-            float floorPosZ = cumulativeZ + (floorDy / 2f * 10f)-5f;
+
+            //float floorPosX = floorDx * 10f / 2f - 5f;  // X축 고정
+            //float floorPosZ = cumulativeZ + (floorDy * 10f / 2f) - 5f;
+            float floorPosX = floorDx * 10f / 2f - margin;  // X축 고정
+            float floorPosZ = cumulativeZ + (floorDy * 10f / 2f) - margin;
             floor.transform.position = new Vector3(floorPosX, 0, floorPosZ);
 
             cumulativeZ += floorDy * 10f;
