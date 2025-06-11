@@ -19,7 +19,6 @@ public class FenceManager : MonoBehaviour
     List<int> doorIndex = new List<int>();
 
     Dictionary<string, int> copyDoorStateDict = new Dictionary<string, int>();  // 복사본
-    object dbLock = new object();       // 동기화를 위한 잠금 객체
     public float updateInterval = 0.5f; // 코루틴 업데이트 간격
 
     void Start()
@@ -302,7 +301,7 @@ public class FenceManager : MonoBehaviour
     {
         while (true)
         {
-            lock (dbLock)
+            lock (Global.dbLocks[(int)Global.DbLockType.DOORSTATE])
             {
                 copyDoorStateDict.Clear();
                 copyDoorStateDict = Global.DoorStateDict.ToDictionary(entry => entry.Key, entry => entry.Value);

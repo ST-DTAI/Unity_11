@@ -1,12 +1,6 @@
 using MySql.Data.MySqlClient;
-using Org.BouncyCastle.Asn1.Ocsp;
-using PimDeWitte.UnityMainThreadDispatcher;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Threading;
-using UnityEditor.MemoryProfiler;
-using UnityEditor.Search;
 using UnityEngine;
 
 public class DatabaseThread : MonoBehaviour
@@ -57,11 +51,14 @@ public class DatabaseThread : MonoBehaviour
 
                     ReadCraneStatus(connection);
                     ReadSafeDoor(connection);
+
+                    connection.Close();
                 }
             }
             catch (Exception ex)
             {
                 Debug.LogError("[Database_Thread Error]: " + ex.Message);
+                //connection.Close();
             }
 
             Thread.Sleep(1000);
@@ -109,7 +106,8 @@ public class DatabaseThread : MonoBehaviour
                         reader.GetInt32("cycleTime")
                     );
 
-                    Global.CrStatusList[crIdx++] = crStatus;
+                    lock (Global.dbLocks[(int)Global.DbLockType.CRSTATUS])
+                        Global.CrStatusList[crIdx++] = crStatus;
                 }
             }
         }
@@ -127,7 +125,8 @@ public class DatabaseThread : MonoBehaviour
                     string name = reader.GetString("Name");
                     int state = reader.GetInt32("State");
 
-                    Global.DoorStateDict[name] = state;
+                    lock (Global.dbLocks[(int)Global.DbLockType.DOORSTATE])
+                        Global.DoorStateDict[name] = state;
                 }
             }
         }

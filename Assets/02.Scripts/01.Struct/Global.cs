@@ -11,7 +11,17 @@ public static class Global
     public static string password = "clts";
     public static string charset = "utf8";
 
-
+    public enum DbLockType
+    {
+        CRSTATUS,
+        DOORSTATE,
+        Count
+    }
+    public static readonly object[] dbLocks = new object[(int)DbLockType.Count]
+    {
+        new object(),
+        new object() 
+    };
     public static List<CrStatus> CrStatusList = new List<CrStatus>();
     public static Dictionary<string, int> DoorStateDict = new Dictionary<string, int>();
 }

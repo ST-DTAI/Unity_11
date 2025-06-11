@@ -224,9 +224,9 @@ public class YardMapDBManager : MonoBehaviour
             newObject.transform.SetParent(skidObjectList.transform, false);
             newObject.name = $"Skid_D{skid.Dong}_{skid.SkidNo}";
 
-            SkidClickHandler clickHandler = newObject.GetComponent<SkidClickHandler>();
-            clickHandler.skidData = skid;
-            clickHandler.clickedMaterial = clickedMaterial;
+            //SkidClickHandler clickHandler = newObject.GetComponent<SkidClickHandler>();
+            //clickHandler.skidData = skid;
+            //clickHandler.clickedMaterial = clickedMaterial;
         }
     }
 
@@ -241,7 +241,7 @@ public class YardMapDBManager : MonoBehaviour
 
         foreach (YardMap coil in coilsList.ToList())
         {
-            Vector3 position = new Vector3(coil.Dx * Global.UnityCorrectValue, coil.Dz * Global.UnityCorrectValue - 0.9f, coil.Dy * Global.UnityCorrectValue);
+            Vector3 position = new Vector3(coil.Dx * Global.UnityCorrectValue, coil.Dz * Global.UnityCorrectValue, coil.Dy * Global.UnityCorrectValue);
             if (coil.Dong == 2)
             {
                 position.z += 40f;
@@ -260,9 +260,12 @@ public class YardMapDBManager : MonoBehaviour
             
 
             newObject.transform.localScale = new Vector3(
-                coil.Width / 1500f,
-                coil.Outdia / 1800f,
-                coil.Outdia / 1800f
+            coil.Width * Global.UnityCorrectValue,
+            coil.Outdia * Global.UnityCorrectValue,
+            coil.Outdia * Global.UnityCorrectValue
+            //coil.Width / 1500f,
+            //coil.Outdia / 1800f,
+            //coil.Outdia / 1800f
             );
 
             CoilClickHandler clickHandler = newObject.AddComponent<CoilClickHandler>();

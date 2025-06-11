@@ -9,7 +9,6 @@ public class CraneManager : MonoBehaviour
     private List<GameObject> craneObject = new List<GameObject>();  // 프리팹으로 만든 크레인 오브젝트를 저장할 리스트
 
     List<CrStatus> copyCraneStatusList = new List<CrStatus>();      // 복사본 리스트
-    object dbLock = new object();                                   // 동기화를 위한 잠금 객체
     public float updateInterval = 0.5f; // 코루틴 업데이트 간격
 
     void Start()
@@ -63,7 +62,7 @@ public class CraneManager : MonoBehaviour
     {
         while (true)
         {
-            lock (dbLock)
+            lock (Global.dbLocks[(int)Global.DbLockType.CRSTATUS])
             {
                 copyCraneStatusList.Clear();
                 copyCraneStatusList.AddRange(Global.CrStatusList); // dbList의 현재 상태를 복사
