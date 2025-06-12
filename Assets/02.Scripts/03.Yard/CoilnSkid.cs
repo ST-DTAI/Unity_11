@@ -83,7 +83,7 @@ public class CoilnSkid : MonoBehaviour
             yardMapInfo.Dy * Global.UnityCorrectValue
         );
 
-        if (position.y < 0.3f) // Adjust height if below a certain threshold
+        if (position.y < 0.3f)  // *-*-
         { //바닥 밑으로 가면 임시로 고정함.. 1단때문에 지금 우선 그리기 2단은 지켜 봐야 함 _250611
             position.y = 0.3f;
         }
@@ -102,8 +102,10 @@ public class CoilnSkid : MonoBehaviour
             Global.UnityCorrectValue * yardMapInfo.Outdia
         );
 
-        TextMeshPro coilText = CoilTextObj.GetComponent<TextMeshPro>();
-        coilText.text = yardMapInfo.PdNo;
+        //TextMeshPro coilText = CoilTextObj.GetComponent<TextMeshPro>();
+        //coilText.text = yardMapInfo.PdNo;
+
+        CoilTextObj.GetComponent<CurvedCoilText>().SetCurvedText(yardMapInfo.PdNo, yardMapInfo.Outdia * Global.UnityCorrectValue);
 
         CoilObj.SetActive(true);
     }

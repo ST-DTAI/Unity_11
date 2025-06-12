@@ -62,6 +62,46 @@ PrefabInstance:
       propertyPath: m_Name
       value: CoilNoText
       objectReference: {fileID: 0}
+    - target: {fileID: 3162672345753513658, guid: 70d7da59a1a88de48bf2d06eebadef0f,
+        type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0.7
+      objectReference: {fileID: 0}
+    - target: {fileID: 3235469574109358711, guid: 70d7da59a1a88de48bf2d06eebadef0f,
+        type: 3}
+      propertyPath: m_text
+      value: T0123456789111111111
+      objectReference: {fileID: 0}
+    - target: {fileID: 3235469574109358711, guid: 70d7da59a1a88de48bf2d06eebadef0f,
+        type: 3}
+      propertyPath: m_fontSize
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3235469574109358711, guid: 70d7da59a1a88de48bf2d06eebadef0f,
+        type: 3}
+      propertyPath: m_fontSizeMax
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3235469574109358711, guid: 70d7da59a1a88de48bf2d06eebadef0f,
+        type: 3}
+      propertyPath: m_fontSizeMin
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3235469574109358711, guid: 70d7da59a1a88de48bf2d06eebadef0f,
+        type: 3}
+      propertyPath: m_overflowMode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3235469574109358711, guid: 70d7da59a1a88de48bf2d06eebadef0f,
+        type: 3}
+      propertyPath: m_enableAutoSizing
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3235469574109358711, guid: 70d7da59a1a88de48bf2d06eebadef0f,
+        type: 3}
+      propertyPath: m_enableWordWrapping
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8123294989677159185, guid: 70d7da59a1a88de48bf2d06eebadef0f,
         type: 3}
       propertyPath: m_LocalPosition.x
