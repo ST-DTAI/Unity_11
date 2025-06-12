@@ -10,16 +10,18 @@ public class CurvedCoilText : MonoBehaviour
 
     public void SetCurvedText(string coilNo, float outDia)
     {
+        // 코일번호 씀
+        if (string.IsNullOrEmpty(coilNo))
+            return;
+
         string reversed = new string(coilNo.Reverse().ToArray());
         TMPText.text = reversed;
-
-        int charCount = reversed.Length;
-        float angleStep = 180f / Mathf.Max(1, charCount - 1);
-
-        float margin = 0.05f; // 내경에서 떨어진 거리
-        float radius = (outDia / 6f) + margin; // 외경만으로 위치 계산
-
         TMPText.ForceMeshUpdate();
+
+        // 내경은 외경의 1/3정도, 내경 반지름은 1/2, 0.05f 정도 띄워서 쓰기
+        float radius = (outDia / 6f) + 0.05f;
+        int charCount = reversed.Length;
+        float angleStep = 180f / Mathf.Max(1, charCount - 1);   // 180도로 글자 쓴다
         var mesh = TMPText.mesh;
         var vertices = mesh.vertices;
 
@@ -29,6 +31,12 @@ public class CurvedCoilText : MonoBehaviour
             if (!charInfo.isVisible) continue;
 
             int vertexIndex = charInfo.vertexIndex;
+            if (vertexIndex + 3 >= vertices.Length)
+            {
+                Debug.LogWarning($"Character {i}의 vertex index 범위 초과: {vertexIndex}, vertices: {vertices.Length}");
+                continue;
+            }
+
             Vector3 charMid = (vertices[vertexIndex + 0] + vertices[vertexIndex + 2]) / 2;
 
             float angleDeg = i * angleStep;

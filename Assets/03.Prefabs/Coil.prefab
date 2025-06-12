@@ -58,7 +58,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 1666397392697315827, guid: 246be036e82605b489ca9deecfb9466a, type: 2}
+  - {fileID: -1544756981144383228, guid: 76bea034004d9f048831963e412d2813, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -102,8 +102,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: COIL_NO
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 246be036e82605b489ca9deecfb9466a, type: 2}
-  m_sharedMaterial: {fileID: 1666397392697315827, guid: 246be036e82605b489ca9deecfb9466a,
+  m_fontAsset: {fileID: 11400000, guid: 76bea034004d9f048831963e412d2813, type: 2}
+  m_sharedMaterial: {fileID: -1544756981144383228, guid: 76bea034004d9f048831963e412d2813,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -134,7 +134,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 1
   m_fontSizeMax: 1
-  m_fontStyle: 1
+  m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 256
   m_textAlignment: 65535
@@ -317,7 +317,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   CoilTextObj: {fileID: 1252542622353094481}
   clickedMaterial: {fileID: 2100000, guid: eb5492c460d386140b43fd8dc05530f4, type: 2}
-  defaultMaterial: {fileID: 2100000, guid: 10f83752b49b3324bbee3df0a3fafcd0, type: 2}
 --- !u!64 &1759354562984792299
 MeshCollider:
   m_ObjectHideFlags: 0
