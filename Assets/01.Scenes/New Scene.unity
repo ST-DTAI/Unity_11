@@ -47146,7 +47146,7 @@ Transform:
   m_GameObject: {fileID: 813909574}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 215.09732, y: 77.14667, z: 3.867104}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -82842,50 +82842,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1343602739}
   m_CullTransparentMesh: 1
---- !u!1 &1346062096
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1346062098}
-  - component: {fileID: 1346062099}
-  m_Layer: 0
-  m_Name: HistoryDatabaseManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!4 &1346062098
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1346062096}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1346062099
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1346062096}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2fc668ec154d77d4e854a16f7addb48e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1348454774
 GameObject:
   m_ObjectHideFlags: 0
@@ -112121,6 +112077,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29298047cdb051f4bb5698e999f34076, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  fenceGap: 1
   fencePrefab: {fileID: 9158645030004131863, guid: 4f57950c12a5de54fb618faba7b4ad0c,
     type: 3}
   doorPrefab: {fileID: 8352784603280068690, guid: 668458802d4ce5142bddfe66af1e16c0,
@@ -130244,4 +130201,3 @@ SceneRoots:
   - {fileID: 1819124719}
   - {fileID: 850873753}
   - {fileID: 813909576}
-  - {fileID: 1346062098}

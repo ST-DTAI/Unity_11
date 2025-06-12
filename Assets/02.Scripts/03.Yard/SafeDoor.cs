@@ -5,6 +5,12 @@ using UnityEngine;
 public class SafeDoor : MonoBehaviour
 {
     public string NameKey;
+    [SerializeField]
+    Light LightR;
+    [SerializeField]
+    Light LightY;
+    [SerializeField]
+    Light LightG;
 
     bool isOpen = false;
     int Dong;
@@ -29,9 +35,9 @@ public class SafeDoor : MonoBehaviour
     }
     private void UpdateState()
     {
-        Light LightR = transform.Find("LightRed").GetComponent<Light>();
-        Light LightY = transform.Find("LightYellow").GetComponent<Light>();
-        Light LightG = transform.Find("LightGreen").GetComponent<Light>();
+        //Light LightR = transform.Find("RedLight").GetComponent<Light>();
+        //Light LightY = transform.Find("YellowLight").GetComponent<Light>();
+        //Light LightG = transform.Find("GreenLight").GetComponent<Light>();
 
         bool[] lights = { false, false, false };    // ª°, ≥Î, √ 
 

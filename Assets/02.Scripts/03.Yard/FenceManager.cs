@@ -10,7 +10,7 @@ using UnityEngine;
 
 public class FenceManager : MonoBehaviour
 {
-    readonly int fenceGap = 2;          // 펜스 너비(=간격)
+    public int fenceGap;          // 펜스 너비(=간격)
     public GameObject fencePrefab;
     public GameObject doorPrefab;
     List<GameObject> safeDoorObject = new List<GameObject>();
@@ -186,6 +186,7 @@ public class FenceManager : MonoBehaviour
     void DrawFencesBetween(Vector3 p1, Vector3 p2, List<Vector3> doors)
     {
         Vector3 direction = (p1 - p2).normalized;                   // 방향벡터
+
         Quaternion rotation = Quaternion.LookRotation(direction);   // 회전: 자동 회전 감지
         float dist = Vector3.Distance(p1, p2);                      // 거리
         int segmentCount = Mathf.FloorToInt(dist / fenceGap);       // 몇개
@@ -264,7 +265,10 @@ public class FenceManager : MonoBehaviour
         {
             GameObject door = Instantiate(doorPrefab, pos, rotation);
             door.transform.SetParent(transform);
-            door.GetComponent<SafeDoor>().NameKey = doorNames[doorIndex[0]].Substring(4);
+
+            string nameKey = doorNames[doorIndex[0]].Substring(4);
+            door.GetComponent<SafeDoor>().NameKey = nameKey;
+            Global.DoorStateDict[nameKey] = 0;
             safeDoorObject.Add(door);
 
             GameObject halfFence = Instantiate(fencePrefab, tmp, rotation);
@@ -291,7 +295,10 @@ public class FenceManager : MonoBehaviour
 
             GameObject door = Instantiate(doorPrefab, tmp, rotation);
             door.transform.SetParent(transform);
-            door.GetComponent<SafeDoor>().NameKey = doorNames[doorIndex[0]].Substring(4);
+
+            string nameKey = doorNames[doorIndex[0]].Substring(4);
+            door.GetComponent<SafeDoor>().NameKey = nameKey;
+            Global.DoorStateDict[nameKey] = 0;
             safeDoorObject.Add(door);
 
             return true;
