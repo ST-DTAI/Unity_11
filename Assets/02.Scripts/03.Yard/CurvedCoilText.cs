@@ -6,13 +6,12 @@ using UnityEngine;
 
 public class CurvedCoilText : MonoBehaviour
 {
-    public TMP_Text text;
-    public float angleOffset = 0.0f;
+    public TMP_Text TMPText;
 
     public void SetCurvedText(string coilNo, float outDia)
     {
         string reversed = new string(coilNo.Reverse().ToArray());
-        text.text = reversed;
+        TMPText.text = reversed;
 
         int charCount = reversed.Length;
         float angleStep = 180f / Mathf.Max(1, charCount - 1);
@@ -20,13 +19,13 @@ public class CurvedCoilText : MonoBehaviour
         float margin = 0.05f; // 내경에서 떨어진 거리
         float radius = (outDia / 6f) + margin; // 외경만으로 위치 계산
 
-        text.ForceMeshUpdate();
-        var mesh = text.mesh;
+        TMPText.ForceMeshUpdate();
+        var mesh = TMPText.mesh;
         var vertices = mesh.vertices;
 
         for (int i = 0; i < charCount; i++)
         {
-            var charInfo = text.textInfo.characterInfo[i];
+            var charInfo = TMPText.textInfo.characterInfo[i];
             if (!charInfo.isVisible) continue;
 
             int vertexIndex = charInfo.vertexIndex;
