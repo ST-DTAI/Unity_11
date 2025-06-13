@@ -4,16 +4,6 @@ using UnityEngine;
 
 public class SafeDoor : MonoBehaviour
 {
-    public string NameKey;
-    [SerializeField]
-    Light LightR;
-    [SerializeField]
-    Light LightY;
-    [SerializeField]
-    Light LightG;
-
-    bool isOpen = false;
-    int Dong;
     enum State
     {
         None,   // æ¯¿Ω
@@ -21,8 +11,31 @@ public class SafeDoor : MonoBehaviour
         Yellow, // ø‰√ª
         Green   // ¥›»˚
     }
+
+    public string NameKey;
     [SerializeField] State state = State.None;
 
+    [SerializeField]
+    GameObject LightR;
+    [SerializeField]
+    GameObject LightY;
+    [SerializeField]
+    GameObject LightG;
+
+    Light[] Lights = new Light[3];
+    Material[] Materials = new Material[3];
+    bool isOpen = false;
+
+    private void Awake()
+    {
+        Lights[0] = LightR.GetComponent<Light>();
+        Lights[1] = LightY.GetComponent<Light>();
+        Lights[2] = LightG.GetComponent<Light>();
+
+        Materials[0] = LightR.GetComponent<Renderer>().material;
+        Materials[1] = LightY.GetComponent<Renderer>().material;
+        Materials[2] = LightG.GetComponent<Renderer>().material;
+    }
     public void SetState(int iState)
     {
         if (iState >= 0 && iState < 4)
@@ -35,11 +48,8 @@ public class SafeDoor : MonoBehaviour
     }
     private void UpdateState()
     {
-        //Light LightR = transform.Find("RedLight").GetComponent<Light>();
-        //Light LightY = transform.Find("YellowLight").GetComponent<Light>();
-        //Light LightG = transform.Find("GreenLight").GetComponent<Light>();
-
-        bool[] lights = { false, false, false };    // ª°, ≥Î, √ 
+        // ª°, ≥Î, √ 
+        bool[] lights = { false, false, false };
 
         switch (state)
         {
@@ -62,9 +72,22 @@ public class SafeDoor : MonoBehaviour
                     ChangeDoor(false);
                 break;
         }
-        LightR.enabled = lights[0];
-        LightY.enabled = lights[1];
-        LightG.enabled = lights[2];
+
+        for (int i = 0; i < 3; i++)
+        {
+            if (lights[i])
+            {
+                Materials[i].EnableKeyword("_EMISSION");
+                Materials[i].globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
+                Lights[i].enabled = true;
+            }
+            else
+            {
+                Materials[i].DisableKeyword("_EMISSION");
+                Materials[i].globalIlluminationFlags = MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+                Lights[i].enabled = false;
+            }
+        }
     }
     public void ChangeDoor(bool isChangeToOpen)
     {

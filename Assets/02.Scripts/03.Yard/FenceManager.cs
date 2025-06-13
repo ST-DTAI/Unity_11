@@ -10,11 +10,14 @@ using UnityEngine;
 
 public class FenceManager : MonoBehaviour
 {
-    public int fenceGap;          // 펜스 너비(=간격)
+    public float fenceSize;
+    Vector3 scale;  // fenceSize 배율 바로 반영하기 위함
     public GameObject fencePrefab;
+    public GameObject halfFencePrefab;
     public GameObject doorPrefab;
     List<GameObject> safeDoorObject = new List<GameObject>();
 
+    // 한쪽면 그릴때 문을 정렬해야함. 정렬한 데이터 보관 List.
     List<string> doorNames = new List<string>();
     List<int> doorIndex = new List<int>();
 
@@ -22,6 +25,9 @@ public class FenceManager : MonoBehaviour
     public float updateInterval = 0.5f; // 코루틴 업데이트 간격
     private void Awake()
     {
+        scale = fencePrefab.transform.localScale * fenceSize;
+        //scale.z *= 1.02f;
+
         InitializeFenceAndDoor();
     }
     void Start()
@@ -108,7 +114,7 @@ public class FenceManager : MonoBehaviour
 
                     if (doorNames.Count == doorPoints.Count)
                     {
-                        DrawFence(fencePoints, doorPoints);
+                        OrderDoorPointsAndDrawOneSpan(fencePoints, doorPoints);
                     }
                     else
                     {
@@ -118,32 +124,7 @@ public class FenceManager : MonoBehaviour
             }
         }
     }
-    void SkidPointsToFencePoints(List<Point> points)
-    {
-        int pointCount = points.Count;
-
-        // 스키드 points에서 안전펜스 points로 변경
-        int minX = points.Min(p => p.X);
-        int maxX = points.Max(p => p.X);
-        int minY = points.Min(p => p.Y);
-        int maxY = points.Max(p => p.Y);
-
-        int offsetX = 1;
-        int offsetY = 2;
-        for (int i = 0; i < pointCount; i++)
-        {
-            Point currentPoint = points[i];
-
-            if (currentPoint.X == minX) currentPoint.X = minX - offsetX;
-            else if (currentPoint.X == maxX) currentPoint.X = maxX + offsetX;
-
-            if (currentPoint.Y == minY) currentPoint.Y = minY - offsetY;
-            else if (currentPoint.Y == maxY) currentPoint.Y = maxY + offsetY;
-
-            points[i] = currentPoint;
-        }
-    }
-    void DrawFence(List<Point> fences, List<Point> doors)
+    void OrderDoorPointsAndDrawOneSpan(List<Point> fences, List<Point> doors)
     {
         int pointCount = fences.Count;
 
@@ -180,36 +161,36 @@ public class FenceManager : MonoBehaviour
             doorIndex = doorData.Select(item => item.index).ToList();
 
             // 펜스, 안전문 한쪽면만 그리기
-            DrawFencesBetween(p1, p2, nowDoors);
+            DrawFencesWithDoor(p1, p2, nowDoors);
         }
     }
-    void DrawFencesBetween(Vector3 p1, Vector3 p2, List<Vector3> doors)
+    void DrawFencesWithDoor(Vector3 p1, Vector3 p2, List<Vector3> doors)
     {
         Vector3 direction = (p1 - p2).normalized;                   // 방향벡터
 
         Quaternion rotation = Quaternion.LookRotation(direction);   // 회전: 자동 회전 감지
         float dist = Vector3.Distance(p1, p2);                      // 거리
-        int segmentCount = Mathf.FloorToInt(dist / fenceGap);       // 몇개
+        int segmentCount = Mathf.FloorToInt(dist / fenceSize);       // 몇개
 
         // 마지막에 반쪽 펜스 그리는가?
         bool xHalf = false;
         bool zHalf = false;
         if (direction.x == 0)       // 세로
         {
-            if (Mathf.Abs(p1.z - p2.z) % 2 == 1)
+            if (Mathf.Abs(p1.z - p2.z) % fenceSize != 0)
                 zHalf = true;
         }
         else if (direction.z == 0)  // 가로
         {
-            if (Mathf.Abs(p1.x - p2.x) % 2 == 1)
+            if (Mathf.Abs(p1.x - p2.x) % fenceSize != 0)
                 xHalf = true;
         }
 
         // 한칸씩 그리기
         for (int i = 0; i < segmentCount; i++)
         {
-            Vector3 pos = p1 - direction * (i * fenceGap);              // 한칸 위치
-            Vector3 tmp = p1 - direction * ((i + 0.5f) * fenceGap);     // 반칸 더 간 위치
+            Vector3 pos = p1 - direction * (i * fenceSize);              // 한칸 위치
+            Vector3 tmp = p1 - direction * ((i + 0.5f) * fenceSize);     // 반칸 더 간 위치
             bool isDrawDoor = false;
             if (doors.Count > 0 && doors[0] != null)
             {
@@ -225,6 +206,7 @@ public class FenceManager : MonoBehaviour
             else
             {
                 GameObject fence = Instantiate(fencePrefab, pos, rotation);
+                fence.transform.localScale = scale;
                 fence.transform.SetParent(transform);
             }
         }
@@ -232,13 +214,9 @@ public class FenceManager : MonoBehaviour
         // 반쪽 펜스 처리
         if (xHalf || zHalf)
         {
-            Vector3 halfPos = p1 - direction * (segmentCount * fenceGap);
-            GameObject halfFence = Instantiate(fencePrefab, halfPos, rotation);
-            halfFence.transform.localScale = new Vector3(
-                halfFence.transform.localScale.x,
-                halfFence.transform.localScale.y,
-                halfFence.transform.localScale.z * 0.5f
-            );
+            Vector3 halfPos = p1 - direction * (segmentCount * fenceSize);
+            GameObject halfFence = Instantiate(halfFencePrefab, halfPos, rotation);
+            halfFence.transform.localScale = scale;
             halfFence.name = $"FENCE_HALFHALFHALFHALFHALF";
             halfFence.transform.SetParent(transform);
         }
@@ -264,6 +242,7 @@ public class FenceManager : MonoBehaviour
         if ((direction.x == 0 && doorVec.z == pos.z) || (direction.z == 0 && doorVec.x == pos.x))
         {
             GameObject door = Instantiate(doorPrefab, pos, rotation);
+            door.transform.localScale = scale;
             door.transform.SetParent(transform);
 
             string nameKey = doorNames[doorIndex[0]].Substring(4);
@@ -271,12 +250,8 @@ public class FenceManager : MonoBehaviour
             Global.DoorStateDict[nameKey] = 0;
             safeDoorObject.Add(door);
 
-            GameObject halfFence = Instantiate(fencePrefab, tmp, rotation);
-            halfFence.transform.localScale = new Vector3(
-                halfFence.transform.localScale.x,
-                halfFence.transform.localScale.y,
-                halfFence.transform.localScale.z * 0.5f
-            );
+            GameObject halfFence = Instantiate(halfFencePrefab, tmp, rotation);
+            halfFence.transform.localScale = scale;
             halfFence.name = "FENCE2_WITH_DOOR1";
             halfFence.transform.SetParent(transform);
 
@@ -284,16 +259,13 @@ public class FenceManager : MonoBehaviour
         }
         else if ((direction.x == 0 && doorVec.z == tmp.z) || (direction.z == 0 && doorVec.x == tmp.x))
         {
-            GameObject halfFence = Instantiate(fencePrefab, pos, rotation);
-            halfFence.transform.localScale = new Vector3(
-                halfFence.transform.localScale.x,
-                halfFence.transform.localScale.y,
-                halfFence.transform.localScale.z * 0.5f
-            );
+            GameObject halfFence = Instantiate(halfFencePrefab, pos, rotation);
+            halfFence.transform.localScale = scale;
             halfFence.name = "FENCE1_Z_WITH_DOOR2";
             halfFence.transform.SetParent(transform);
 
             GameObject door = Instantiate(doorPrefab, tmp, rotation);
+            door.transform.localScale = scale;
             door.transform.SetParent(transform);
 
             string nameKey = doorNames[doorIndex[0]].Substring(4);
