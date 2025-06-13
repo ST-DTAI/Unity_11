@@ -87,14 +87,14 @@ public class CraneManager : MonoBehaviour
             Debug.LogWarning("YardSetUpManager가 씬에 존재하지 않습니다.");
             return;
         }
-        if (Global.DongSpacing.Count == 0)
+        if (Global.YardSetUpList.Count == 0)
         {
-            Debug.LogWarning("Global.DongSpacing이 초기화되지 않았습니다.");
+            Debug.LogWarning("Global.YardSetUpList 초기화되지 않았습니다.");
             return;
         }
 
         int dong = crane.GetComponent<Crane>().crNo / 10;
-        float spacing = Global.DongSpacing[dong - 1];
+        float spacing = Global.YardSetUpList[dong - 1].DyMax;
         float craneScale= 1f * spacing /32f;
         // spacing을 크레인 Z축 스케일에 반영 (예시)
         crane.transform.localScale = new Vector3(craneScale, 1f, craneScale);

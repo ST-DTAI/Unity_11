@@ -9,18 +9,14 @@ public class CameraSetting : MonoBehaviour
     public CinemachineVirtualCamera dongCam01;
     public CinemachineVirtualCamera dongCam02;
 
-
-
     public float moveSpeed = 20f;
     public float rotateSpeed = 500f;
     public float zoomSpeed = 500f;
 
-
     // 이동 제한
-    public Vector2 xBounds = new Vector2(-100f, 300f);
-    public Vector2 zBounds = new Vector2(-100f, 100f);
-    public Vector2 yBounds = new Vector2(5f, 100f); // 줌 높이 제한
-
+    Vector2 xBounds = new Vector2(-20f, 20f);
+    Vector2 zBounds = new Vector2(-20f, 20f);
+    Vector2 yBounds = new Vector2(2f, 50f);
 
     private enum CamType { None, Main, Cam01, Cam02 }
     private CamType currentCam = CamType.None;
@@ -29,11 +25,16 @@ public class CameraSetting : MonoBehaviour
     private Quaternion mainCamInitialRotation;
     private bool isMainCamActive = false;
 
-    private Vector3 lastMousePosition;
-    private bool isRightMouseDown = false;
-
     void Start()
     {
+        // 카메라 제한범위 설정
+        foreach (YardSetUp data in Global.YardSetUpList)
+        {
+            xBounds.y = Mathf.Max(xBounds.y, data.DxMax + 20f);
+            zBounds.y += data.DyMax;
+            yBounds.y = Mathf.Max(yBounds.y, data.Height + 50f);
+        }
+
         // 저장: mainCam의 초기 위치/회전
         mainCamInitialPosition = mainCam.transform.position;
         mainCamInitialRotation = mainCam.transform.rotation;
@@ -62,50 +63,7 @@ public class CameraSetting : MonoBehaviour
         }
 
         else if (currentCam == CamType.Main)
-        
-
         {
-            //Transform camTransform = mainCam.transform;
-
-            //// 1. 키보드 이동
-            //float h = Input.GetAxisRaw("Horizontal");
-            //float v = Input.GetAxisRaw("Vertical");
-            //Vector3 move = camTransform.forward * v + camTransform.right * h;
-            //move.y = 0f;
-            //camTransform.position += move * moveSpeed * Time.deltaTime;
-
-            //// 2. 마우스 휠 줌 (Y축 이동)
-            //float scroll = Input.GetAxis("Mouse ScrollWheel");
-            //Vector3 zoomMove = Vector3.up * scroll * zoomSpeed * Time.deltaTime;
-            //camTransform.position += zoomMove;
-
-            //// 3. 마우스 우클릭 회전
-            //if (Input.GetMouseButtonDown(1))
-            //{
-            //    isRightMouseDown = true;
-            //    lastMousePosition = Input.mousePosition;
-            //}
-
-            //if (Input.GetMouseButton(1))
-            //{
-            //    Vector3 delta = Input.mousePosition - lastMousePosition;
-            //    float rotationY = delta.x * rotateSpeed * Time.deltaTime;
-
-            //    camTransform.Rotate(0f, rotationY, 0f, Space.World);
-            //    lastMousePosition = Input.mousePosition;
-            //}
-
-            //if (Input.GetMouseButtonUp(1))
-            //{
-            //    isRightMouseDown = false;
-            //}
-
-            //// 4. 이동 제한
-            //Vector3 pos = camTransform.position;
-            //pos.x = Mathf.Clamp(pos.x, xBounds.x, xBounds.y);
-            //pos.y = Mathf.Clamp(pos.y, yBounds.x, yBounds.y);
-            //pos.z = Mathf.Clamp(pos.z, zBounds.x, zBounds.y);
-            //camTransform.position = pos;
             Transform camTransform = mainCam.transform;
 
             // 마우스 우클릭으로 자유 회전
@@ -114,7 +72,6 @@ public class CameraSetting : MonoBehaviour
                 Cursor.lockState = CursorLockMode.Locked;
                 Cursor.visible = false;
             }
-
             if (Input.GetMouseButton(1))
             {
                 float mouseX = Input.GetAxis("Mouse X");
@@ -125,7 +82,6 @@ public class CameraSetting : MonoBehaviour
                 eulerAngles.y += mouseX * rotateSpeed * Time.deltaTime;
                 camTransform.eulerAngles = eulerAngles;
             }
-
             if (Input.GetMouseButtonUp(1))
             {
                 Cursor.lockState = CursorLockMode.None;
@@ -138,8 +94,10 @@ public class CameraSetting : MonoBehaviour
             float upDown = 0f;
 
             // Q/E로 수직 이동 추가 (선택)
-            if (Input.GetKey(KeyCode.Q)) upDown = -1f;
-            if (Input.GetKey(KeyCode.E)) upDown = 1f;
+            if (Input.GetKey(KeyCode.Q))
+                upDown = -1f;
+            if (Input.GetKey(KeyCode.E))
+                upDown = 1f;
 
             // Shift로 속도 증가
             float currentSpeed = moveSpeed * (Input.GetKey(KeyCode.LeftShift) ? 2f : 1f);
@@ -153,6 +111,13 @@ public class CameraSetting : MonoBehaviour
             {
                 camTransform.position += camTransform.forward * scroll * zoomSpeed * Time.deltaTime;
             }
+            
+            // 마우스 휠 클릭 드래그로 Y축 이동
+            if (Input.GetMouseButton(2)) // Mouse Button 2 = 휠 클릭
+            {
+                float mouseY = Input.GetAxis("Mouse Y");
+                camTransform.position += Vector3.up * -mouseY * moveSpeed * Time.deltaTime;
+            }
 
             // 이동 제한
             Vector3 pos = camTransform.position;
@@ -161,9 +126,6 @@ public class CameraSetting : MonoBehaviour
             pos.z = Mathf.Clamp(pos.z, zBounds.x, zBounds.y);
             camTransform.position = pos;
         }
-
-        
-
     }
 
 

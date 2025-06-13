@@ -1,14 +1,14 @@
 public struct YardSetUp
 {
     public int Dong;
-    public int DxOffset;
-    public int DxMax;
-    public int DyOffset;
-    public int DyMax;
-    public int Height;
-    public int DxSpacing;
+    public float DxOffset;
+    public float DxMax;
+    public float DyOffset;
+    public float DyMax;
+    public float Height;
+    public float DxSpacing;
 
-    public YardSetUp(int dong, int dxOffset, int dxMax, int dyOffset, int dyMax, int height, int dxSpacing)
+    public YardSetUp(int dong, float dxOffset, float dxMax, float dyOffset, float dyMax, float height, float dxSpacing)
     {
         Dong = dong;
         DxOffset = dxOffset;

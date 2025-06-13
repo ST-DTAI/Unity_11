@@ -6,9 +6,6 @@ using UnityEngine;
 
 public class YardSetUpManager : MonoBehaviour
 {
-    List<YardSetUp> yardSetUp = new List<YardSetUp>();
-
-
     public GameObject railPrefab;
     public GameObject floorPrefab;
     public GameObject stopperPrefab;
@@ -36,16 +33,15 @@ public class YardSetUpManager : MonoBehaviour
                     {
                         YardSetUp yard = new YardSetUp(
                             reader.GetInt32("Dong"),
-                            reader.GetInt32("DxOffset"),
-                            reader.GetInt32("DxMax"),
-                            reader.GetInt32("DyOffset"),
-                            reader.GetInt32("DyMax"),
-                            reader.GetInt32("Height"),
-                            reader.GetInt32("DxSpacing")
+                            reader.GetFloat("DxOffset") * Global.UnityCorrectValue,
+                            reader.GetFloat("DxMax") * Global.UnityCorrectValue,
+                            reader.GetFloat("DyOffset") * Global.UnityCorrectValue,
+                            reader.GetFloat("DyMax") * Global.UnityCorrectValue,
+                            reader.GetFloat("Height") * Global.UnityCorrectValue,
+                            reader.GetFloat("DxSpacing") * Global.UnityCorrectValue
                         );
-                        yardSetUp.Add(yard);
 
-                        Global.DongSpacing.Add(yard.DyMax * Global.UnityCorrectValue);
+                        Global.YardSetUpList.Add(yard);
                     }
                 }
             }
@@ -60,42 +56,37 @@ public class YardSetUpManager : MonoBehaviour
     void PlaceRailPrefabs()
     {
         float dongSpacing = 0;
-        for (int dong = 0; dong < yardSetUp.Count; dong++)
+        for (int dong = 0; dong < Global.YardSetUpList.Count; dong++)
         {
-            float railCount = yardSetUp[dong].DxMax / yardSetUp[dong].DxSpacing + 1;
-            float railSpacing = yardSetUp[dong].DxSpacing * Global.UnityCorrectValue;
-            float height = yardSetUp[dong].Height * Global.UnityCorrectValue;
+            int railCount = (int)(Global.YardSetUpList[dong].DxMax / Global.YardSetUpList[dong].DxSpacing) + 1;
+            float railSpacing = Global.YardSetUpList[dong].DxSpacing;
+            float height = Global.YardSetUpList[dong].Height;
             
             if (dong > 0)
             {
-                dongSpacing += Global.DongSpacing[dong - 1]; // 이전 동의 간격을 누적
+                dongSpacing += Global.YardSetUpList[dong - 1].DyMax;    // 이전 동의 간격을 누적
             }
 
-            for (int i = 0; i < railCount; i++)
+            for (int iRail = 0; iRail < railCount; iRail++)
             {
-                Vector3 position = new Vector3(i * railSpacing, 0, dongSpacing);
+                Vector3 position = new Vector3(iRail * railSpacing, 0, dongSpacing);
                 GameObject newRail = Instantiate(railPrefab, position, Quaternion.identity);
                 newRail.transform.SetParent(transform, false);
-                newRail.name = "Rail_" + dong;
-
+                newRail.name = $"Rail_{dong}_{iRail + 1}";
 
                 Transform rail = newRail.transform.Find("Rail");
                 Transform railRev = newRail.transform.Find("RailRev");
                 if (rail != null && railRev != null)
                 {
-                    railRev.localPosition = rail.localPosition + Vector3.forward * Global.DongSpacing[dong];
+                    railRev.localPosition = rail.localPosition + Vector3.forward * Global.YardSetUpList[dong].DyMax;
                     rail.GetComponent<RailSetting>().SetRailTransform(height, railSpacing);
                     railRev.GetComponent<RailSetting>().SetRailTransform(height, railSpacing);
 
-                    if (i != 0 && i != railCount -1)
-                    {
-                        continue;
-                    }
-                    else
+                    if (iRail == 0 || iRail == railCount -1)
                     {
                         float dx = -railSpacing * 0.5f;
                         int rotY = 0;
-                        if (i != 0)
+                        if (iRail != 0)
                         {
                             dx = railSpacing * 0.5f;
                             rotY = 180;
@@ -123,24 +114,19 @@ public class YardSetUpManager : MonoBehaviour
     void PlaceFloorPrefab()
     {
         float cumulativeZ = 0f;
-        for (int i = 0; i < yardSetUp.Count; i++)
+        for (int i = 0; i < Global.YardSetUpList.Count; i++)
         {
-            YardSetUp dongData = yardSetUp[i];
-
             // FloorPrefab 생성
             GameObject floor = Instantiate(floorPrefab, Vector3.zero, Quaternion.identity);
 
             float margin = 0f;
 
             // Floor Scale 설정
-            float floorDx = dongData.DxMax * Global.UnityCorrectValue * 0.1f;
-            float floorDy = dongData.DyMax * Global.UnityCorrectValue * 0.1f;
+            float floorDx = Global.YardSetUpList[i].DxMax * 0.1f;
+            float floorDy = Global.YardSetUpList[i].DyMax * 0.1f;
             floor.transform.localScale = new Vector3(floorDx + margin * 2, 1f, floorDy + margin * 2);
 
             // Floor Position 설정
-
-            //float floorPosX = floorDx * 10f / 2f - 5f;  // X축 고정
-            //float floorPosZ = cumulativeZ + (floorDy * 10f / 2f) - 5f;
             float floorPosX = floorDx * 10f / 2f - margin;  // X축 고정
             float floorPosZ = cumulativeZ + (floorDy * 10f / 2f) - margin;
             floor.transform.position = new Vector3(floorPosX, 0, floorPosZ);
